@@ -1,8 +1,8 @@
-title: Just the Docs Template
-description: A starter template for a Jeykll site using the Just the Docs theme!
+title: Codebase Tutorials
+description: A collection of codebases tutorials
 theme: just-the-docs
 
-url: https://just-the-docs.github.io
+url: https://vuminhph.github.io/tutorial-code-docs
 
 aux_links:
-  Template Repository: https://github.com/just-the-docs/just-the-docs-template
+  Template Repository: https://github.com/vuminhph/tutorial-code-docs
