@@ -1,3 +1,10 @@
+---
+layout: default
+title: "Monitoring"
+parent: "LLM Analytics"
+nav_order: 9
+---
+
 # Chapter 9: Monitoring
 
 Welcome to the final chapter of our core concepts tutorial! In [Chapter 8: Data Processing Functions](08_data_processing_functions_.md), we saw how to use Python functions to clean and transform data within our workflows. Now, let's look at how we can keep an eye on everything that's happening inside `llm-analytics` – how do we observe and understand the performance, cost, and behaviour of our analysis pipelines?
@@ -6,10 +13,10 @@ Welcome to the final chapter of our core concepts tutorial! In [Chapter 8: Data 
 
 Imagine our text analysis assembly line ([Workflow Graph](02_workflow_graph_.md)) is running. Maybe one day, you notice:
 
-*   The analysis for a specific project seems much slower than usual.
-*   Your bill for using the LLM service suddenly jumps up.
-*   The LLM in one of your workflows starts giving strange or inconsistent answers.
-*   You've tried updating a prompt ([Prompt Management](06_prompt_management_.md)), but you're not sure if it's actually improving the results or making them worse.
+- The analysis for a specific project seems much slower than usual.
+- Your bill for using the LLM service suddenly jumps up.
+- The LLM in one of your workflows starts giving strange or inconsistent answers.
+- You've tried updating a prompt ([Prompt Management](06_prompt_management_.md)), but you're not sure if it's actually improving the results or making them worse.
 
 How do you diagnose these problems? Your workflow might involve multiple steps, several LLM calls, and maybe even data retrieval ([Search Engine / Vector Store Integration](07_search_engine___vector_store_integration_.md)). It can feel like a black box – data goes in, results come out, but what happens in between? We need a way to see inside.
 
@@ -26,38 +33,41 @@ This is where **Monitoring** comes in. Think of it as adding **observability** t
 
 This visibility is crucial for:
 
-*   **Debugging:** Pinpointing exactly where an error occurred or why an unexpected result was generated.
-*   **Cost Analysis:** Understanding which parts of your workflow are most expensive.
-*   **Performance Tuning:** Identifying bottlenecks and optimizing slow steps.
-*   **Evaluating Changes:** Comparing different prompt versions or workflow structures objectively.
+- **Debugging:** Pinpointing exactly where an error occurred or why an unexpected result was generated.
+- **Cost Analysis:** Understanding which parts of your workflow are most expensive.
+- **Performance Tuning:** Identifying bottlenecks and optimizing slow steps.
+- **Evaluating Changes:** Comparing different prompt versions or workflow structures objectively.
 
 ## How It Works: The `MonitorManager` and Callbacks
 
 So, how does `llm-analytics` enable this observation?
 
-1.  **Configuration (`.env` file):** Monitoring is typically configured *per project*. Inside your project's configuration folder (e.g., `configs/my_project/v1/`), you can create a `.env` file. This file holds settings specific to monitoring, like:
-    *   `MONITOR_ENABLE=True` (Turn monitoring on or off)
-    *   `MONITOR_TYPE="langfuse"` (Specify which tool to use)
-    *   `MONITOR_PUBLIC_KEY=pk-lf-...` (Your Langfuse public API key)
-    *   `MONITOR_SECRET_KEY=sk-lf-...` (Your Langfuse secret API key)
-    *   `MONITOR_HOST="https://cloud.langfuse.com"` (The Langfuse server address)
+1.  **Configuration (`.env` file):** Monitoring is typically configured _per project_. Inside your project's configuration folder (e.g., `configs/my_project/v1/`), you can create a `.env` file. This file holds settings specific to monitoring, like:
+
+    - `MONITOR_ENABLE=True` (Turn monitoring on or off)
+    - `MONITOR_TYPE="langfuse"` (Specify which tool to use)
+    - `MONITOR_PUBLIC_KEY=pk-lf-...` (Your Langfuse public API key)
+    - `MONITOR_SECRET_KEY=sk-lf-...` (Your Langfuse secret API key)
+    - `MONITOR_HOST="https://cloud.langfuse.com"` (The Langfuse server address)
 
 2.  **The `MonitorManager`:** This is like the central switchboard for monitoring. When a request for a project comes in, the `MonitorManager` is consulted.
-    *   It looks for the project's `.env` file.
-    *   It reads the `MONITOR_...` settings.
-    *   If `MONITOR_ENABLE` is `True` and the type is supported (like `langfuse`), it creates and configures an instance of the appropriate monitor client (e.g., a `LangfuseMonitor` object).
+
+    - It looks for the project's `.env` file.
+    - It reads the `MONITOR_...` settings.
+    - If `MONITOR_ENABLE` is `True` and the type is supported (like `langfuse`), it creates and configures an instance of the appropriate monitor client (e.g., a `LangfuseMonitor` object).
 
 3.  **Callbacks:** This is the magic ingredient. Monitoring tools like Langfuse provide "callback handlers". Think of these as tiny agents that you can attach to specific operations (especially LLM calls).
-    *   When the `MonitorManager` provides an active monitor (like `LangfuseMonitor`), the system retrieves a specific callback handler from it (e.g., `LangfuseMonitor.get_callback()`).
-    *   This handler is then *attached* to the execution configuration of the [Workflow Graph](02_workflow_graph_.md) just before it runs.
-    *   As the graph executes, whenever it performs an operation that the callback understands (like calling an LLM via Langchain), the callback automatically wakes up.
-    *   It records details about the operation (input prompt, output response, time taken, tokens used) and sends this information securely to the monitoring service (e.g., the Langfuse dashboard).
+    - When the `MonitorManager` provides an active monitor (like `LangfuseMonitor`), the system retrieves a specific callback handler from it (e.g., `LangfuseMonitor.get_callback()`).
+    - This handler is then _attached_ to the execution configuration of the [Workflow Graph](02_workflow_graph_.md) just before it runs.
+    - As the graph executes, whenever it performs an operation that the callback understands (like calling an LLM via Langchain), the callback automatically wakes up.
+    - It records details about the operation (input prompt, output response, time taken, tokens used) and sends this information securely to the monitoring service (e.g., the Langfuse dashboard).
 
 ## Solving the Use Case: Diagnosing a Slow Workflow
 
 Let's say your `sentiment_analysis` project is running slowly.
 
 1.  **Enable Monitoring:** You add/edit the `.env` file in `configs/sentiment_analysis/v1/`:
+
     ```dotenv
     # configs/sentiment_analysis/v1/.env
     MONITOR_ENABLE=True
@@ -70,17 +80,18 @@ Let's say your `sentiment_analysis` project is running slowly.
 2.  **Run the Workflow:** You send an analysis request through the [API Server & Routers](03_api_server___routers_.md) as usual.
 
 3.  **Behind the Scenes:**
-    *   The `MonitorManager` reads the `.env` file and creates a `LangfuseMonitor` instance.
-    *   The API router gets a `CallbackHandler` from the `LangfuseMonitor`.
-    *   This handler is added to the graph execution config.
-    *   As the graph runs (extracts topics, analyzes sentiment, summarizes), the `CallbackHandler` intercepts the LLM calls.
-    *   It sends trace data, input/output details, latency, and token counts to your Langfuse account.
+
+    - The `MonitorManager` reads the `.env` file and creates a `LangfuseMonitor` instance.
+    - The API router gets a `CallbackHandler` from the `LangfuseMonitor`.
+    - This handler is added to the graph execution config.
+    - As the graph runs (extracts topics, analyzes sentiment, summarizes), the `CallbackHandler` intercepts the LLM calls.
+    - It sends trace data, input/output details, latency, and token counts to your Langfuse account.
 
 4.  **Analyze in Langfuse:** You log in to the Langfuse web UI. You can now see:
-    *   A visual trace of your workflow run.
-    *   How long each node (especially the LLM calls) took. You quickly spot that the `summarize_call` node is taking 10 seconds, while others take less than 1 second.
-    *   The exact prompt used for summarization and the response received.
-    *   The number of tokens used for each call, helping you understand cost drivers.
+    - A visual trace of your workflow run.
+    - How long each node (especially the LLM calls) took. You quickly spot that the `summarize_call` node is taking 10 seconds, while others take less than 1 second.
+    - The exact prompt used for summarization and the response received.
+    - The number of tokens used for each call, helping you understand cost drivers.
 
 With this information, you can now focus your optimization efforts on the `summarize_call` node, perhaps by trying a different prompt, a faster LLM model, or adjusting parameters like `max_tokens`.
 
@@ -159,7 +170,8 @@ class MonitorSettings(BaseSettings):
         # (In fala, this helps load project-specific .env files)
         return init_settings, dotenv_settings, env_settings
 ```
-*   This class defines the expected variables (like `monitor_enable`, `monitor_public_key`). Pydantic automatically tries to load them from environment variables or a specified `.env` file.
+
+- This class defines the expected variables (like `monitor_enable`, `monitor_public_key`). Pydantic automatically tries to load them from environment variables or a specified `.env` file.
 
 **2. Managing Monitors (`fala/monitors/monitor_manager.py`)**
 
@@ -220,9 +232,10 @@ class MonitorManager:
         return monitor_settings
 
 ```
-*   `get_monitor` orchestrates the process: check cache, load settings, build if needed, cache result.
-*   `_get_monitor_settings` uses the `MonitorSettings` class (from `contains.py`) to load variables from the project's specific `.env` file.
-*   `_build_monitor` creates the actual `LangfuseMonitor` object if the type matches.
+
+- `get_monitor` orchestrates the process: check cache, load settings, build if needed, cache result.
+- `_get_monitor_settings` uses the `MonitorSettings` class (from `contains.py`) to load variables from the project's specific `.env` file.
+- `_build_monitor` creates the actual `LangfuseMonitor` object if the type matches.
 
 **3. Langfuse Monitor Implementation (`fala/monitors/langfuse.py`)**
 
@@ -275,8 +288,9 @@ class LangfuseMonitor(BaseMonitor):
         # ... implementation using self.client.get_prompt ...
         pass # See Chapter 6 for details
 ```
-*   `__init__` connects to the Langfuse service using the credentials loaded by the `MonitorManager`.
-*   `get_callback` creates the `CallbackHandler` object that will be attached to the workflow execution. This handler is pre-configured with the necessary credentials to send data back to Langfuse.
+
+- `__init__` connects to the Langfuse service using the credentials loaded by the `MonitorManager`.
+- `get_callback` creates the `CallbackHandler` object that will be attached to the workflow execution. This handler is pre-configured with the necessary credentials to send data back to Langfuse.
 
 **4. Attaching the Callback (`fala/api_server/routers/analytic_routers.py`)**
 
@@ -321,19 +335,20 @@ async def analyzer(project_id: ..., content: ..., version: ...):
 
     # ... cache results, return response ...
 ```
-*   It calls `get_monitor` to see if monitoring is active for the project.
-*   If a monitor is returned, it calls `get_callback` to get the handler.
-*   Crucially, it adds this handler to a list under the key `"callbacks"` within the `config` dictionary passed to the graph's `invoke` method. Langchain/LangGraph knows to look for this key and use any provided handlers during execution.
+
+- It calls `get_monitor` to see if monitoring is active for the project.
+- If a monitor is returned, it calls `get_callback` to get the handler.
+- Crucially, it adds this handler to a list under the key `"callbacks"` within the `config` dictionary passed to the graph's `invoke` method. Langchain/LangGraph knows to look for this key and use any provided handlers during execution.
 
 ## Conclusion
 
 Monitoring is your window into the inner workings of `llm-analytics`. By enabling tools like Langfuse through simple `.env` configuration, you gain powerful observability features:
 
-*   **Traceability:** Follow requests step-by-step.
-*   **Debugging:** See exact inputs/outputs.
-*   **Performance Analysis:** Measure latency and token usage.
-*   **Cost Tracking:** Understand resource consumption.
-*   **Prompt Evaluation:** Compare different versions in action.
+- **Traceability:** Follow requests step-by-step.
+- **Debugging:** See exact inputs/outputs.
+- **Performance Analysis:** Measure latency and token usage.
+- **Cost Tracking:** Understand resource consumption.
+- **Prompt Evaluation:** Compare different versions in action.
 
 The `MonitorManager` handles selecting and configuring the right monitor based on your project's settings, and integration happens seamlessly via callback handlers attached to the workflow execution. This allows you to build, iterate, and maintain robust and efficient LLM-powered applications with confidence.
 

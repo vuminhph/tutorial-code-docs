@@ -1,3 +1,10 @@
+---
+layout: default
+title: "Graph State"
+parent: "LLM Analytics"
+nav_order: 5
+---
+
 # Chapter 5: Graph State
 
 In the [previous chapter](04_runnable__graph_node_.md), we learned about [Runnables (Graph Nodes)](04_runnable__graph_node_.md), which are like the individual workstations on our text analysis assembly line ([Workflow Graph](02_workflow_graph_.md)). Each Runnable performs a specific task, like analyzing sentiment or extracting information.
@@ -9,8 +16,8 @@ But how does the data – the thing being worked on – move from one workstatio
 Imagine our assembly line for analyzing a customer support call transcript:
 
 1.  **Station 1 (Extract Topics):** Reads the transcript and figures out the main topics.
-2.  **Station 2 (Analyze Sentiment):** Needs the *original transcript* AND the *topics* from Station 1 to determine the customer's sentiment.
-3.  **Station 3 (Summarize):** Needs the *original transcript*, maybe the *topics*, and possibly the *sentiment* to write a good summary.
+2.  **Station 2 (Analyze Sentiment):** Needs the _original transcript_ AND the _topics_ from Station 1 to determine the customer's sentiment.
+3.  **Station 3 (Summarize):** Needs the _original transcript_, maybe the _topics_, and possibly the _sentiment_ to write a good summary.
 
 Each station needs access not only to the original data but also potentially to the results produced by earlier stations. How do we manage this flow of information? We need a way to pass the baton (the data) smoothly between runners (the stations/nodes).
 
@@ -18,11 +25,11 @@ Each station needs access not only to the original data but also potentially to 
 
 This is where the **Graph State** comes in. Think of it as the **shared conveyor belt** or a **central clipboard** that travels along the assembly line with the product.
 
-*   **Shared Memory:** The Graph State holds all the important information related to a specific run of the workflow.
-*   **Carries Everything:** It starts with the initial input (like the call transcript) and, as it moves through the [Workflow Graph](02_workflow_graph_.md), it collects results from each [Runnable (Graph Node)](04_runnable__graph_node_.md) that runs.
-*   **Read and Write Access:** Every node on the graph can:
-    *   **Read** from the Graph State to get the data it needs (e.g., the original transcript or results from a previous node).
-    *   **Write** its own results back to the Graph State, making them available for the next nodes in line.
+- **Shared Memory:** The Graph State holds all the important information related to a specific run of the workflow.
+- **Carries Everything:** It starts with the initial input (like the call transcript) and, as it moves through the [Workflow Graph](02_workflow_graph_.md), it collects results from each [Runnable (Graph Node)](04_runnable__graph_node_.md) that runs.
+- **Read and Write Access:** Every node on the graph can:
+  - **Read** from the Graph State to get the data it needs (e.g., the original transcript or results from a previous node).
+  - **Write** its own results back to the Graph State, making them available for the next nodes in line.
 
 This ensures that data flows continuously and is accessible wherever it's needed in the workflow.
 
@@ -32,7 +39,7 @@ The Graph State isn't just a jumble of data. It's typically organized into speci
 
 1.  **Initial Input:** Contains the raw data you first provided to the workflow (e.g., the `transcript`, `callName`, `agentChannel`).
 2.  **`processed_data`:** A dictionary that acts like a scratchpad. Nodes write their intermediate findings here. For example, the 'extract_topics' node might write `{"topics": ["internet outage", "billing"]}` into `processed_data`. Subsequent nodes can then read this.
-3.  **`task_results`:** A dictionary specifically for collecting the *final* outputs you care about. When a node produces a result that should be part of the final answer (like the overall sentiment or the final summary), it writes that result here. This dictionary is usually returned at the very end of the workflow.
+3.  **`task_results`:** A dictionary specifically for collecting the _final_ outputs you care about. When a node produces a result that should be part of the final answer (like the overall sentiment or the final summary), it writes that result here. This dictionary is usually returned at the very end of the workflow.
 4.  **(Optional) `sampling_outputs`:** Sometimes, you might run a node multiple times with slight variations (sampling). This area can hold results from such sampling operations.
 5.  **(Optional) Other Execution Details:** Might hold configuration details or metadata about the current run.
 
@@ -50,67 +57,76 @@ Imagine a group working on a project using a shared whiteboard:
 Let's trace the Graph State through our call transcript analysis:
 
 1.  **Start:** The Graph State is created with the initial input:
+
     ```json
     // Initial State
     {
-      "transcript": [{"channel": 0, "text": "User: ..."}, {"channel": 1, "text": "Agent: ..."}],
+      "transcript": [
+        { "channel": 0, "text": "User: ..." },
+        { "channel": 1, "text": "Agent: ..." }
+      ],
       "agentChannel": 1,
       "processed_data": {}, // Empty initially
-      "task_results": {}    // Empty initially
+      "task_results": {} // Empty initially
     }
     ```
 
 2.  **Node `extract_topics` Runs:**
-    *   *Reads:* The `transcript` from the state.
-    *   *Writes:* Its result (`{"topics": ["internet outage"]}`) into `processed_data`.
-    *   *State Update:*
-        ```json
-        {
-          // ... transcript, agentChannel ...
-          "processed_data": {
-            "extract_topics": {"topics": ["internet outage"]} // Result added
-          },
-          "task_results": {}
-        }
-        ```
-    *(Note: By default, results in `processed_data` are often stored under a key matching the node's ID, like `"extract_topics"`).*
+
+        - _Reads:_ The `transcript` from the state.
+        - _Writes:_ Its result (`{"topics": ["internet outage"]}`) into `processed_data`.
+        - _State Update:_
+          `json
+
+    {
+    // ... transcript, agentChannel ...
+    "processed*data": {
+    "extract_topics": {"topics": ["internet outage"]} // Result added
+    },
+    "task_results": {}
+    }
+    `
+    *(Note: By default, results in `processed_data` are often stored under a key matching the node's ID, like `"extract_topics"`).\_
 
 3.  **Node `analyze_sentiment` Runs:**
-    *   *Reads:* The `transcript` and the `extract_topics` result from `processed_data`.
-    *   *Writes:* Its result (`{"sentiment": "negative"}`) into `processed_data`. *And* because sentiment is a desired final output, it also writes it to `task_results`.
-    *   *State Update:*
-        ```json
-        {
-          // ... transcript, agentChannel ...
-          "processed_data": {
-            "extract_topics": {"topics": ["internet outage"]},
-            "analyze_sentiment": {"sentiment": "negative"} // Result added
-          },
-          "task_results": {
-            "sentiment_analysis_task": {"sentiment": "negative"} // Marked as final result
-          }
-        }
-        ```
-    *(Note: The key in `task_results` might be different, often defined in the node's config).*
+
+        - _Reads:_ The `transcript` and the `extract_topics` result from `processed_data`.
+        - _Writes:_ Its result (`{"sentiment": "negative"}`) into `processed_data`. _And_ because sentiment is a desired final output, it also writes it to `task_results`.
+        - _State Update:_
+          `json
+
+    {
+    // ... transcript, agentChannel ...
+    "processed*data": {
+    "extract_topics": {"topics": ["internet outage"]},
+    "analyze_sentiment": {"sentiment": "negative"} // Result added
+    },
+    "task_results": {
+    "sentiment_analysis_task": {"sentiment": "negative"} // Marked as final result
+    }
+    }
+    `
+    *(Note: The key in `task_results` might be different, often defined in the node's config).\_
 
 4.  **Node `summarize_call` Runs:**
-    *   *Reads:* `transcript` and maybe other data from `processed_data`.
-    *   *Writes:* Its result (`{"summary": "..."}`) to both `processed_data` and `task_results`.
-    *   *State Update:*
-        ```json
-        {
-          // ... transcript, agentChannel ...
-          "processed_data": {
-            "extract_topics": {"topics": ["internet outage"]},
-            "analyze_sentiment": {"sentiment": "negative"},
-            "summarize_call": {"summary": "..."} // Result added
-          },
-          "task_results": {
-            "sentiment_analysis_task": {"sentiment": "negative"},
-            "summary_task": {"summary": "..."} // Marked as final result
-          }
+
+    - _Reads:_ `transcript` and maybe other data from `processed_data`.
+    - _Writes:_ Its result (`{"summary": "..."}`) to both `processed_data` and `task_results`.
+    - _State Update:_
+      ```json
+      {
+        // ... transcript, agentChannel ...
+        "processed_data": {
+          "extract_topics": { "topics": ["internet outage"] },
+          "analyze_sentiment": { "sentiment": "negative" },
+          "summarize_call": { "summary": "..." } // Result added
+        },
+        "task_results": {
+          "sentiment_analysis_task": { "sentiment": "negative" },
+          "summary_task": { "summary": "..." } // Marked as final result
         }
-        ```
+      }
+      ```
 
 5.  **End:** The workflow finishes. The system typically returns the content of `task_results` as the final output.
 
@@ -151,10 +167,10 @@ The Graph State acts as the central hub, allowing each node to build upon the wo
         task_results: Annotated[dict, update_dict]
     ```
 
-    *   `BaseModel` (from Pydantic) helps define the structure and types of data.
-    *   `Annotated[dict, update_dict]` is a clever trick. It tells LangGraph that `processed_data` is a dictionary, and whenever a node returns a dictionary meant for `processed_data`, LangGraph should use the `update_dict` function to *merge* the new dictionary with the existing one, rather than replacing it. This is how results accumulate.
+    - `BaseModel` (from Pydantic) helps define the structure and types of data.
+    - `Annotated[dict, update_dict]` is a clever trick. It tells LangGraph that `processed_data` is a dictionary, and whenever a node returns a dictionary meant for `processed_data`, LangGraph should use the `update_dict` function to _merge_ the new dictionary with the existing one, rather than replacing it. This is how results accumulate.
 
-2.  **Node Execution & State Update:** When a [Runnable (Graph Node)](04_runnable__graph_node_.md) executes, it receives the *current* state object as input. After doing its work, it returns a dictionary containing the data it wants to add or update in the state.
+2.  **Node Execution & State Update:** When a [Runnable (Graph Node)](04_runnable__graph_node_.md) executes, it receives the _current_ state object as input. After doing its work, it returns a dictionary containing the data it wants to add or update in the state.
 
     ```python
     # Simplified concept from a node's execution function

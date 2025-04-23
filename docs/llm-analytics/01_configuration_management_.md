@@ -1,6 +1,13 @@
+---
+layout: default
+title: "Configuration Management"
+parent: "LLM Analytics"
+nav_order: 1
+---
+
 # Chapter 1: Configuration Management
 
-Welcome to the `llm-analytics` tutorial! We're excited to guide you through the core concepts of this powerful framework. Let's start with the very foundation: how `llm-analytics` knows *what* to do for each specific task.
+Welcome to the `llm-analytics` tutorial! We're excited to guide you through the core concepts of this powerful framework. Let's start with the very foundation: how `llm-analytics` knows _what_ to do for each specific task.
 
 ## The Problem: One Tool, Many Jobs
 
@@ -8,19 +15,19 @@ Imagine you have a toolbox. You might use a hammer for nails, a screwdriver for 
 
 `llm-analytics` is like a versatile toolbox for analyzing text using Large Language Models (LLMs). But how does it know whether you want to:
 
-*   Analyze customer reviews for sentiment using `GPT-4`?
-*   Summarize news articles using `Claude 3`?
-*   Extract specific information from legal documents using a different model and specific instructions (prompts)?
+- Analyze customer reviews for sentiment using `GPT-4`?
+- Summarize news articles using `Claude 3`?
+- Extract specific information from legal documents using a different model and specific instructions (prompts)?
 
-Each of these tasks requires different settings: different LLM models, different prompts (the instructions we give the LLM), maybe different steps in the process, or different places to get the data. We need a way to tell `llm-analytics` the *exact* settings for the *specific* job we want it to do.
+Each of these tasks requires different settings: different LLM models, different prompts (the instructions we give the LLM), maybe different steps in the process, or different places to get the data. We need a way to tell `llm-analytics` the _exact_ settings for the _specific_ job we want it to do.
 
 ## The Solution: Project-Specific Instruction Manuals (Configurations)
 
 This is where **Configuration Management** comes in. Think of it as creating a specific instruction manual for each analysis project you undertake.
 
-*   **Project (`project_id`):** Each unique analysis task gets a name, like `customer_sentiment` or `news_summarizer`. This is its `project_id`.
-*   **Instruction Manual (YAML Files):** For each project, we write down all its specific settings (LLM model, prompts, workflow steps, data sources) in simple text files. We use a format called YAML (`.yml`), which is easy for both humans to read and write, and for computers to understand.
-*   **Filing Cabinet (`configs/` Directory):** All these project-specific instruction manuals (YAML files) are stored neatly in folders inside a main `configs/` directory. Each project gets its own folder named after its `project_id`.
+- **Project (`project_id`):** Each unique analysis task gets a name, like `customer_sentiment` or `news_summarizer`. This is its `project_id`.
+- **Instruction Manual (YAML Files):** For each project, we write down all its specific settings (LLM model, prompts, workflow steps, data sources) in simple text files. We use a format called YAML (`.yml`), which is easy for both humans to read and write, and for computers to understand.
+- **Filing Cabinet (`configs/` Directory):** All these project-specific instruction manuals (YAML files) are stored neatly in folders inside a main `configs/` directory. Each project gets its own folder named after its `project_id`.
 
 This way, when you want to run the `customer_sentiment` analysis, `llm-analytics` just needs to open the `configs/customer_sentiment/` folder and read its instruction manual. If you want to run `news_summarizer`, it reads the manual from `configs/news_summarizer/`.
 
@@ -29,10 +36,10 @@ This way, when you want to run the `customer_sentiment` analysis, `llm-analytics
 So, you have your instruction manuals (YAML files) in the `configs/` directory. How does `llm-analytics` actually read and use them?
 
 1.  **Identify the Project:** You tell `llm-analytics` which project you want to work with by providing its `project_id`.
-2.  **Find the Manual:** The system looks inside the `configs/` directory for a folder matching that `project_id`. It might also look for a specific *version* folder inside the project folder if you are using versioning (e.g., `configs/customer_sentiment/v1.2/`).
+2.  **Find the Manual:** The system looks inside the `configs/` directory for a folder matching that `project_id`. It might also look for a specific _version_ folder inside the project folder if you are using versioning (e.g., `configs/customer_sentiment/v1.2/`).
 3.  **Read the Files:** It reads all the `.yml` files within that project (and version) folder.
 4.  **Understand the Instructions:** The system combines the information from all these files and converts it into a structured format (like a Python object) that other parts of `llm-analytics` can easily understand and use.
-5.  **Speed Boost (Caching):** To avoid reading the files from the disk every single time (which can be slow), `llm-analytics` often keeps a copy of recently used configurations in a faster storage place, like computer memory or a dedicated cache system like Redis. This is called *caching*. The next time you ask for the same configuration, it can grab the cached copy much faster.
+5.  **Speed Boost (Caching):** To avoid reading the files from the disk every single time (which can be slow), `llm-analytics` often keeps a copy of recently used configurations in a faster storage place, like computer memory or a dedicated cache system like Redis. This is called _caching_. The next time you ask for the same configuration, it can grab the cached copy much faster.
 
 ### Example: Loading Configuration for `sentiment_analysis`
 
@@ -187,7 +194,7 @@ sequenceDiagram
 
     This class knows how to find the project's configuration directory and read all the YAML files inside it, merging their contents.
 
-3.  **`fala/api_server/cache_handler/__init__.py`:** Decides *which* caching mechanism to use (simple in-memory or more robust Redis).
+3.  **`fala/api_server/cache_handler/__init__.py`:** Decides _which_ caching mechanism to use (simple in-memory or more robust Redis).
 
     ```python
     # Simplified from fala/api_server/cache_handler/__init__.py

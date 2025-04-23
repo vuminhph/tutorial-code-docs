@@ -1,3 +1,10 @@
+---
+layout: default
+title: "Data Processing Functions"
+parent: "LLM Analytics"
+nav_order: 8
+---
+
 # Chapter 8: Data Processing Functions
 
 Welcome to Chapter 8! In the [previous chapter](07_search_engine___vector_store_integration_.md), we saw how `llm-analytics` can connect to search engines and vector stores to retrieve relevant information, giving our AI workflows a powerful memory.
@@ -8,8 +15,8 @@ But data, whether it's the initial input or the output from an LLM or search eng
 
 Imagine our text analysis assembly line ([Workflow Graph](02_workflow_graph_.md)) again:
 
-*   **Scenario 1 (Input Mess):** We receive a full customer service call transcript with both the agent's and the customer's lines mixed together. However, for sentiment analysis, we only care about what the *customer* said. How do we filter out just the customer's speech *before* sending it to the sentiment analysis LLM?
-*   **Scenario 2 (Output Needs Polish):** An LLM is asked to classify a support ticket into one of three categories: "Technical Issue", "Billing Question", or "General Inquiry". Sometimes, the LLM might respond with slight variations like "technical problem" or "question about billing". How do we ensure this output always matches one of our official categories *after* the LLM runs?
+- **Scenario 1 (Input Mess):** We receive a full customer service call transcript with both the agent's and the customer's lines mixed together. However, for sentiment analysis, we only care about what the _customer_ said. How do we filter out just the customer's speech _before_ sending it to the sentiment analysis LLM?
+- **Scenario 2 (Output Needs Polish):** An LLM is asked to classify a support ticket into one of three categories: "Technical Issue", "Billing Question", or "General Inquiry". Sometimes, the LLM might respond with slight variations like "technical problem" or "question about billing". How do we ensure this output always matches one of our official categories _after_ the LLM runs?
 
 We need tools to perform these specific preparation and cleanup tasks at different points in the workflow.
 
@@ -19,18 +26,18 @@ We need tools to perform these specific preparation and cleanup tasks at differe
 
 Think of them like specialized utensils in a kitchen:
 
-*   **Strainer (Pre-processor):** Used *before* cooking to remove unwanted parts (like filtering customer lines from a transcript).
-*   **Formatter/Mould (Post-processor):** Used *after* cooking to shape or clean up the final dish (like ensuring an LLM's classification matches a predefined list).
+- **Strainer (Pre-processor):** Used _before_ cooking to remove unwanted parts (like filtering customer lines from a transcript).
+- **Formatter/Mould (Post-processor):** Used _after_ cooking to shape or clean up the final dish (like ensuring an LLM's classification matches a predefined list).
 
 Key characteristics:
 
 1.  **Reusable:** Write a function once (e.g., to extract customer text) and use it in multiple workflows or at different steps.
 2.  **Python Code:** They are standard Python functions, giving you full flexibility for data manipulation.
-3.  **Pre-processors:** Functions designed to run *before* a complex node (like an LLM or search call) to prepare its input data.
-4.  **Post-processors:** Functions designed to run *after* a node to clean, format, or validate its output.
+3.  **Pre-processors:** Functions designed to run _before_ a complex node (like an LLM or search call) to prepare its input data.
+4.  **Post-processors:** Functions designed to run _after_ a node to clean, format, or validate its output.
 5.  **Location:** These Python functions live in specific directories:
-    *   `fala/tasks/` (for general-purpose functions included with `llm-analytics`).
-    *   `configs/{your_project_id}/{version}/function_runnables/` (for functions specific to your project).
+    - `fala/tasks/` (for general-purpose functions included with `llm-analytics`).
+    - `configs/{your_project_id}/{version}/function_runnables/` (for functions specific to your project).
 6.  **Dynamic Mapping:** The system automatically finds these functions based on their location and makes them available to be used in your workflows. You refer to them by their function name in the configuration.
 
 ## Using Data Processing Functions
@@ -59,37 +66,39 @@ Let's see how we can solve our two scenarios:
         # Return the update for the Graph State's 'processed_data'
         return {"processed_data": {"customer_only_text": ". ".join(customer_lines)}}
     ```
-    *   This simple function takes the current [Graph State](05_graph_state_.md) as input.
-    *   It reads the `transcript` and `agentChannel`.
-    *   It loops through the messages and collects text from the customer channel.
-    *   It returns a dictionary indicating how to update the `processed_data` section of the state. The key `customer_only_text` now holds the filtered text.
 
-2.  **Use it in the Workflow:** In your `workflow.yml`, you add a node *before* the LLM call:
+    - This simple function takes the current [Graph State](05_graph_state_.md) as input.
+    - It reads the `transcript` and `agentChannel`.
+    - It loops through the messages and collects text from the customer channel.
+    - It returns a dictionary indicating how to update the `processed_data` section of the state. The key `customer_only_text` now holds the filtered text.
+
+2.  **Use it in the Workflow:** In your `workflow.yml`, you add a node _before_ the LLM call:
 
     ```yaml
     # configs/my_sentiment_project/v1/workflow.yml (Snippet)
     workflow:
       nodes:
         - id: "get_customer_lines"
-          type: "function"              # Use a Python function
+          type: "function" # Use a Python function
           function: "extract_customer_text" # Name of the function to run
 
         - id: "analyze_sentiment"
           type: "llm"
-          prompt: "sentiment_prompt"     # This prompt will use 'customer_only_text'
+          prompt: "sentiment_prompt" # This prompt will use 'customer_only_text'
           prompt_variables: ["customer_only_text"] # Explicitly state the variable needed
 
       edges:
-        - src: "__START__"             # Start node
-          dst: "get_customer_lines"    # Run the function first
+        - src: "__START__" # Start node
+          dst: "get_customer_lines" # Run the function first
         - src: "get_customer_lines"
-          dst: "analyze_sentiment"     # Then run the LLM
+          dst: "analyze_sentiment" # Then run the LLM
 
-      entry_points: ["__START__"]      # Define the entry point
+      entry_points: ["__START__"] # Define the entry point
     ```
-    *   The `get_customer_lines` node is of `type: "function"` and references the `extract_customer_text` function by its name.
-    *   The workflow ensures this function runs first, adding `customer_only_text` to the [Graph State](05_graph_state_.md).
-    *   The subsequent `analyze_sentiment` LLM node can now use this prepared `customer_only_text` as input (assuming the `sentiment_prompt` is designed to use it).
+
+    - The `get_customer_lines` node is of `type: "function"` and references the `extract_customer_text` function by its name.
+    - The workflow ensures this function runs first, adding `customer_only_text` to the [Graph State](05_graph_state_.md).
+    - The subsequent `analyze_sentiment` LLM node can now use this prepared `customer_only_text` as input (assuming the `sentiment_prompt` is designed to use it).
 
 **Scenario 2: Cleaning LLM Category Output (Post-processor)**
 
@@ -115,12 +124,13 @@ Let's see how we can solve our two scenarios:
         task_name = "final_classification" # Name for the final result field
         return {"task_results": {task_name: final_category}}
     ```
-    *   This function reads the presumed LLM output from the `processed_data` section of the [Graph State](05_graph_state_.md).
-    *   It compares the LLM's output to a predefined list of `official_categories`.
-    *   It uses `difflib` to find the closest match.
-    *   It returns an update for the `task_results` section of the state, ensuring the final output uses the official category name.
 
-2.  **Use it in the Workflow:** Add a node *after* the LLM classification node:
+    - This function reads the presumed LLM output from the `processed_data` section of the [Graph State](05_graph_state_.md).
+    - It compares the LLM's output to a predefined list of `official_categories`.
+    - It uses `difflib` to find the closest match.
+    - It returns an update for the `task_results` section of the state, ensuring the final output uses the official category name.
+
+2.  **Use it in the Workflow:** Add a node _after_ the LLM classification node:
 
     ```yaml
     # configs/my_classification_project/v1/workflow.yml (Snippet)
@@ -140,27 +150,28 @@ Let's see how we can solve our two scenarios:
         - src: "__START__"
           dst: "classify_ticket_llm"
         - src: "classify_ticket_llm"
-          dst: "cleanup_category"       # Run cleanup after LLM
+          dst: "cleanup_category" # Run cleanup after LLM
         - src: "cleanup_category"
-          dst: "END"                    # End the workflow
+          dst: "END" # End the workflow
 
       entry_points: ["__START__"]
     ```
-    *   The `cleanup_category` node runs *after* `classify_ticket_llm`.
-    *   It executes the `match_official_category` function.
-    *   The result of this function (the cleaned category) is placed directly into the `task_results` under the key `final_classification`, ready to be returned as the final workflow output.
+
+    - The `cleanup_category` node runs _after_ `classify_ticket_llm`.
+    - It executes the `match_official_category` function.
+    - The result of this function (the cleaned category) is placed directly into the `task_results` under the key `final_classification`, ready to be returned as the final workflow output.
 
 ## Under the Hood: Finding and Running Functions
 
 How does `llm-analytics` know where to find `extract_customer_text` or `match_official_category` and how to run them?
 
 1.  **Discovery:** When `llm-analytics` loads a project or builds its graph, helper functions (like `create_function_mappings`) scan predefined directories:
-    *   The shared `fala/workflow/runnables/function_runnables/` directory.
-    *   The project-specific `configs/{project_id}/{version}/function_runnables/` directory.
-    *   It imports any Python files found there (like `pre_processors.py`, `post_processors.py`) and creates a dictionary mapping function names (e.g., `"extract_customer_text"`) to the actual Python function objects.
+    - The shared `fala/workflow/runnables/function_runnables/` directory.
+    - The project-specific `configs/{project_id}/{version}/function_runnables/` directory.
+    - It imports any Python files found there (like `pre_processors.py`, `post_processors.py`) and creates a dictionary mapping function names (e.g., `"extract_customer_text"`) to the actual Python function objects.
 2.  **Runnable Building:** When the `GraphBuilder` (from [Chapter 2: Workflow Graph](02_workflow_graph_.md)) encounters a node definition like `type: "function", function: "extract_customer_text"` in `workflow.yml`, it asks the `RunnableBuilder` (from [Chapter 4: Runnable (Graph Node)](04_runnable__graph_node_.md)) to create the appropriate Runnable.
 3.  **Function Lookup:** The `RunnableBuilder` looks up the requested function name (`"extract_customer_text"`) in the dictionary of discovered functions created in step 1.
-4.  **Runnable Creation:** It finds the corresponding Python function object. This function object *is* the Runnable for this node.
+4.  **Runnable Creation:** It finds the corresponding Python function object. This function object _is_ the Runnable for this node.
 5.  **Execution:** During workflow execution, when LangGraph reaches this node, it simply calls the Python function object, passing the current [Graph State](05_graph_state_.md) as the argument. The dictionary returned by the function is used to update the state for the next node.
 
 ```mermaid
@@ -212,9 +223,10 @@ def create_function_mappings(module_path):
         print(f"Error loading functions from {module_path}: {e}")
         return {}
 ```
-*   `importlib.import_module` dynamically loads Python code.
-*   `inspect.getmembers` finds all functions within the loaded code.
-*   It returns a dictionary mapping the function names to the callable function objects.
+
+- `importlib.import_module` dynamically loads Python code.
+- `inspect.getmembers` finds all functions within the loaded code.
+- It returns a dictionary mapping the function names to the callable function objects.
 
 **2. Loading Mappings in `RunnableBuilder` (`fala/workflow/runnables/runnable_builder.py`)**
 
@@ -255,8 +267,9 @@ class RunnableBuilder:
 
     # ... build_runnable method ...
 ```
-*   The `_load_function_mappings` method calls `create_function_mappings` for both the standard path (`fala...`) and the project-specific path (`configs...`).
-*   It merges the results into `self.function_mappings`, which holds all available functions for this project.
+
+- The `_load_function_mappings` method calls `create_function_mappings` for both the standard path (`fala...`) and the project-specific path (`configs...`).
+- It merges the results into `self.function_mappings`, which holds all available functions for this project.
 
 **3. Building the Function Runnable (`fala/workflow/runnables/runnable_builder.py`)**
 
@@ -295,16 +308,17 @@ When `build_runnable` is called for a `function` type node, it looks up the func
         # Return the actual Python function object found in the mappings
         return self.function_mappings[function_name]
 ```
-*   The `_build_function_runnable` helper method takes the function name from the `workflow.yml` configuration.
-*   It looks this name up as a key in the `self.function_mappings` dictionary.
-*   It returns the associated value, which is the actual Python function object (e.g., the `extract_customer_text` function itself). This function object is then used directly as the node's executor in the LangGraph workflow.
+
+- The `_build_function_runnable` helper method takes the function name from the `workflow.yml` configuration.
+- It looks this name up as a key in the `self.function_mappings` dictionary.
+- It returns the associated value, which is the actual Python function object (e.g., the `extract_customer_text` function itself). This function object is then used directly as the node's executor in the LangGraph workflow.
 
 ## Conclusion
 
 **Data Processing Functions** are the reusable Python tools you use to manipulate data within your `llm-analytics` workflows. They act as specialized workstations on your analysis assembly line.
 
-*   **Pre-processors** prepare data *before* it enters a node (like an LLM or search engine).
-*   **Post-processors** clean up or format the data *after* a node completes its task.
+- **Pre-processors** prepare data _before_ it enters a node (like an LLM or search engine).
+- **Post-processors** clean up or format the data _after_ a node completes its task.
 
 By defining nodes with `type: "function"` in your `workflow.yml` and referencing Python functions located in standard (`fala/tasks/`) or project-specific (`configs/.../function_runnables/`) directories, you can easily integrate custom data transformations. This promotes code reuse and separates the core logic of your LLM calls or searches from the surrounding data preparation and cleanup steps, making your workflows cleaner and more maintainable.
 

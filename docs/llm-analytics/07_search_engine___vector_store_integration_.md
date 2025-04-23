@@ -1,3 +1,10 @@
+---
+layout: default
+title: "Search Engine"
+parent: "LLM Analytics"
+nav_order: 7
+---
+
 # Chapter 7: Search Engine / Vector Store Integration
 
 Welcome to Chapter 7! In the [previous chapter](06_prompt_management_.md), we learned how `llm-analytics` manages the instructions (prompts) we give to Large Language Models (LLMs). But sometimes, for an LLM to give a truly helpful answer, it needs more than just instructions – it needs relevant background information or examples.
@@ -6,9 +13,9 @@ Welcome to Chapter 7! In the [previous chapter](06_prompt_management_.md), we le
 
 Imagine you're building a chatbot to help customers troubleshoot internet problems. A customer says, "My WiFi keeps dropping."
 
-How does the chatbot know the best suggestions? Simply telling an LLM "Answer the customer about WiFi drops" might give generic advice. What if you want the chatbot to recall *similar* past issues and their solutions from your company's support logs? How can the LLM access this vast knowledge base?
+How does the chatbot know the best suggestions? Simply telling an LLM "Answer the customer about WiFi drops" might give generic advice. What if you want the chatbot to recall _similar_ past issues and their solutions from your company's support logs? How can the LLM access this vast knowledge base?
 
-LLMs don't inherently have memory of *your specific data* (like past support tickets or project documents). We need a way to quickly find relevant information from our own knowledge pool and give it to the LLM *just in time* when it's answering a question.
+LLMs don't inherently have memory of _your specific data_ (like past support tickets or project documents). We need a way to quickly find relevant information from our own knowledge pool and give it to the LLM _just in time_ when it's answering a question.
 
 ## The Solution: A Smart Index (Vector Store)
 
@@ -17,46 +24,49 @@ This is where **Search Engine / Vector Store Integration** comes in. Think of it
 Here's the core idea:
 
 1.  **Knowledge Base:** You have a collection of text data (like past support tickets, product manuals, meeting notes, sample conversations).
-2.  **Meaningful Numbers (Embeddings):** We use special AI models (called embedding models, like those from FPT AI or OpenAI) to convert each piece of text into a list of numbers (a "vector" or "embedding"). These numbers capture the *semantic meaning* of the text. Texts with similar meanings will have similar lists of numbers.
-3.  **Special Database (Vector Store):** We store these numerical embeddings (along with the original text) in a special kind of database called a **Vector Store** (like Qdrant). These databases are designed to very quickly find embeddings that are *numerically similar* to a given query embedding.
-4.  **Smart Search (Semantic Search):** When a new question comes in (like "My WiFi keeps dropping"), we convert *that* question into an embedding too. We then ask the Vector Store: "Find the stored texts whose embeddings are most similar to this new query embedding."
+2.  **Meaningful Numbers (Embeddings):** We use special AI models (called embedding models, like those from FPT AI or OpenAI) to convert each piece of text into a list of numbers (a "vector" or "embedding"). These numbers capture the _semantic meaning_ of the text. Texts with similar meanings will have similar lists of numbers.
+3.  **Special Database (Vector Store):** We store these numerical embeddings (along with the original text) in a special kind of database called a **Vector Store** (like Qdrant). These databases are designed to very quickly find embeddings that are _numerically similar_ to a given query embedding.
+4.  **Smart Search (Semantic Search):** When a new question comes in (like "My WiFi keeps dropping"), we convert _that_ question into an embedding too. We then ask the Vector Store: "Find the stored texts whose embeddings are most similar to this new query embedding."
 5.  **Context for LLM:** The Vector Store returns the most relevant pieces of text from our knowledge base (e.g., past tickets about WiFi drops). We can then give these relevant texts to the LLM, along with the original question and instructions ([Prompt Management](06_prompt_management_.md)), so it can generate a much more informed and helpful answer.
 
 This whole process of finding relevant information and giving it to the LLM to improve its answer is called **Retrieval-Augmented Generation (RAG)**. The Search Engine / Vector Store integration is the crucial "Retrieval" part.
 
 ### Analogy: A Super-Librarian
 
-Imagine a library where books aren't organized alphabetically, but by *meaning*.
+Imagine a library where books aren't organized alphabetically, but by _meaning_.
 
-*   **Books:** Your knowledge documents (tickets, manuals).
-*   **Magic Summaries:** The numerical embeddings, capturing the essence of each book.
-*   **Magic Card Catalog:** The Vector Store, storing these summaries.
-*   **Your Question:** You ask the Super-Librarian (the search system) about "internet connection issues".
-*   **Librarian's Work:** The Librarian instantly finds the summaries (embeddings) most related to your question's essence and pulls out those specific books (documents).
-*   **Your Answer:** You read those relevant books (context) to get the specific information you need. RAG is like giving these relevant books to your AI assistant to help them answer your question.
+- **Books:** Your knowledge documents (tickets, manuals).
+- **Magic Summaries:** The numerical embeddings, capturing the essence of each book.
+- **Magic Card Catalog:** The Vector Store, storing these summaries.
+- **Your Question:** You ask the Super-Librarian (the search system) about "internet connection issues".
+- **Librarian's Work:** The Librarian instantly finds the summaries (embeddings) most related to your question's essence and pulls out those specific books (documents).
+- **Your Answer:** You read those relevant books (context) to get the specific information you need. RAG is like giving these relevant books to your AI assistant to help them answer your question.
 
 ## How It Solves the Use Case: The WiFi Problem
 
 Let's trace how this helps our chatbot:
 
 1.  **Setup (Indexing):** Beforehand, we take all our past support tickets (or summaries of them).
-    *   *Ticket 1:* "User WiFi drops every hour. Resolved by changing WiFi channel." -> Convert to Embedding A -> Store in Vector Store (e.g., collection `support_knowledge`) with original text.
-    *   *Ticket 2:* "Slow internet speeds reported. Router firmware outdated." -> Convert to Embedding B -> Store.
-    *   *Ticket 3:* "Cannot connect to WiFi. Password incorrect." -> Convert to Embedding C -> Store.
-    *   ... and so on for thousands of tickets.
+
+    - _Ticket 1:_ "User WiFi drops every hour. Resolved by changing WiFi channel." -> Convert to Embedding A -> Store in Vector Store (e.g., collection `support_knowledge`) with original text.
+    - _Ticket 2:_ "Slow internet speeds reported. Router firmware outdated." -> Convert to Embedding B -> Store.
+    - _Ticket 3:_ "Cannot connect to WiFi. Password incorrect." -> Convert to Embedding C -> Store.
+    - ... and so on for thousands of tickets.
 
 2.  **Runtime (Querying):** A customer sends the message: "My WiFi keeps dropping."
-    *   The system converts this query to Embedding Q.
+
+    - The system converts this query to Embedding Q.
 
 3.  **Search:** The system asks the Vector Store (Qdrant): "Find documents in `support_knowledge` whose embeddings are closest to Embedding Q."
 
 4.  **Retrieval:** The Vector Store quickly finds that Embedding A ("User WiFi drops every hour...") is very similar to Embedding Q. It might also find a few other related ones. It returns the original text for these matches.
 
 5.  **Augmented Generation (RAG):** Now, the system uses a [Runnable (Graph Node)](04_runnable__graph_node_.md) (likely a `rag` type) that combines:
-    *   The original question: "My WiFi keeps dropping."
-    *   The retrieved context: "Context: User WiFi drops every hour. Resolved by changing WiFi channel."
-    *   A prompt: "Based on the context, suggest troubleshooting steps for the user's issue."
-    *   This combined input is sent to the LLM.
+
+    - The original question: "My WiFi keeps dropping."
+    - The retrieved context: "Context: User WiFi drops every hour. Resolved by changing WiFi channel."
+    - A prompt: "Based on the context, suggest troubleshooting steps for the user's issue."
+    - This combined input is sent to the LLM.
 
 6.  **Informed Response:** The LLM, now equipped with relevant context, generates a much better response, like: "Okay, I see you're having issues with WiFi dropping. Sometimes this can be caused by interference. Have you tried changing the WiFi channel on your router?"
 
@@ -89,11 +99,11 @@ sequenceDiagram
     VecStore-->>BuildProcess: Items added
 ```
 
-*   The build process reads configuration to know which embedding model and vector store to use.
-*   It gets the data (e.g., from configuration files or other sources).
-*   It uses the selected embedding model to turn text into vectors.
-*   It ensures the collection exists in the Vector Store (like creating a table in a normal database).
-*   It sends the original text, its embedding, and any metadata (like ticket ID, category) to the Vector Store for indexing.
+- The build process reads configuration to know which embedding model and vector store to use.
+- It gets the data (e.g., from configuration files or other sources).
+- It uses the selected embedding model to turn text into vectors.
+- It ensures the collection exists in the Vector Store (like creating a table in a normal database).
+- It sends the original text, its embedding, and any metadata (like ticket ID, category) to the Vector Store for indexing.
 
 **2. Runtime (Querying in a RAG Node):**
 
@@ -119,13 +129,13 @@ sequenceDiagram
     RAGNode->>GState: Write response to Graph State
 ```
 
-*   The Runnable gets the text to search for (the query) from the [Graph State](05_graph_state_.md).
-*   It uses the *same* embedding model used during indexing to convert the query text into an embedding.
-*   It sends this query embedding to the Vector Store's search function for the relevant collection.
-*   It receives the most similar documents back.
-*   It formats these documents (often just taking the text) to be used as context.
-*   (For a RAG node) It prepares a prompt incorporating the original query and the retrieved context, then calls the LLM.
-*   The result is written back to the [Graph State](05_graph_state_.md).
+- The Runnable gets the text to search for (the query) from the [Graph State](05_graph_state_.md).
+- It uses the _same_ embedding model used during indexing to convert the query text into an embedding.
+- It sends this query embedding to the Vector Store's search function for the relevant collection.
+- It receives the most similar documents back.
+- It formats these documents (often just taking the text) to be used as context.
+- (For a RAG node) It prepares a prompt incorporating the original query and the retrieved context, then calls the LLM.
+- The result is written back to the [Graph State](05_graph_state_.md).
 
 ## Code Dive: Configuration and Usage
 
@@ -142,15 +152,15 @@ provider:
   models:
     # Define embedding models to use
     embeddings:
-      - engine: "fptai"         # Which provider (e.g., FPT AI)
+      - engine: "fptai" # Which provider (e.g., FPT AI)
         model: "embedding-gte-base" # Specific model name
-        parameters: {}          # Optional parameters
+        parameters: {} # Optional parameters
 
     # Define search engine/vector store integrations
     search:
-      - engine: "qdrant"            # Vector store type (e.g., Qdrant)
+      - engine: "qdrant" # Vector store type (e.g., Qdrant)
         embedding_model: "fptai-embedding-gte-base" # Link to embedding model defined above
-        parameters: {}              # Qdrant connection details (often global)
+        parameters: {} # Qdrant connection details (often global)
 
     # Define LLMs (as seen in previous chapters)
     llms:
@@ -159,8 +169,8 @@ provider:
         # ...
 ```
 
-*   The `embeddings` section lists the models available for converting text to vectors.
-*   The `search` section defines the vector store setup, linking it to a specific embedding model (so indexing and querying use the same one) and specifying the store type (`qdrant`).
+- The `embeddings` section lists the models available for converting text to vectors.
+- The `search` section defines the vector store setup, linking it to a specific embedding model (so indexing and querying use the same one) and specifying the store type (`qdrant`).
 
 **2. Initialization (`fala/llm_handler/embeddings/search_engines/__init__.py`)**
 
@@ -211,11 +221,11 @@ def init_search_engine(
 # from fala.llm_handler.embeddings.embedding_providers import init_embedding_model
 ```
 
-*   This function takes the configuration details (engine type, embedding model key).
-*   It checks if a client for this combination is already cached.
-*   If not, it ensures the required embedding model is initialized and gets its instance.
-*   It then creates the specific client instance (e.g., `LCQdrantEmbeddingsIndex` for Qdrant), passing the embedding model instance and connection parameters.
-*   The client is stored in a cache (`search_engine_cache`) for reuse.
+- This function takes the configuration details (engine type, embedding model key).
+- It checks if a client for this combination is already cached.
+- If not, it ensures the required embedding model is initialized and gets its instance.
+- It then creates the specific client instance (e.g., `LCQdrantEmbeddingsIndex` for Qdrant), passing the embedding model instance and connection parameters.
+- The client is stored in a cache (`search_engine_cache`) for reuse.
 
 **3. Qdrant Engine (`fala/llm_handler/embeddings/search_engines/qdrant_engine.py`)**
 
@@ -287,10 +297,10 @@ class LCQdrantEmbeddingsIndex(BaseSearch):
         return output_docs
 ```
 
-*   The `__init__` method stores the embedding model instance and connects to Qdrant.
-*   `build_collection` ensures the place to store vectors (the "collection") exists.
-*   `add_items` takes your data (text + metadata), uses Langchain's Qdrant integration which automatically calls the `self.embedding` model to get vectors, and uploads everything.
-*   `search` takes the query text, uses Langchain to embed it and search Qdrant, returning the documents (text + metadata) and their similarity scores.
+- The `__init__` method stores the embedding model instance and connects to Qdrant.
+- `build_collection` ensures the place to store vectors (the "collection") exists.
+- `add_items` takes your data (text + metadata), uses Langchain's Qdrant integration which automatically calls the `self.embedding` model to get vectors, and uploads everything.
+- `search` takes the query text, uses Langchain to embed it and search Qdrant, returning the documents (text + metadata) and their similarity scores.
 
 **4. Using in a Workflow (`workflow.yml` & `RunnableBuilder`)**
 
@@ -302,13 +312,13 @@ workflow:
   nodes:
     # ... maybe a node to get the user query into state.processed_data['user_query'] ...
     - id: "find_relevant_tickets"
-      type: "retrieval"        # This node performs vector search
+      type: "retrieval" # This node performs vector search
       search_key: "user_query" # Find this key in Graph State for the search text
       retrieved_field: "context" # Store results under this key in Graph State
       max_results: 3
       # collection_name is often implicit (project_id) or globally configured
     - id: "generate_response"
-      type: "llm"              # Or could be 'rag' type combining retrieval+LLM
+      type: "llm" # Or could be 'rag' type combining retrieval+LLM
       prompt: "chatbot_prompt_with_context" # Prompt uses 'context' from state
       task: "final_answer"
   edges:

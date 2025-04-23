@@ -1,6 +1,13 @@
+---
+layout: default
+title: "API Server & Routers"
+parent: "LLM Analytics"
+nav_order: 3
+---
+
 # Chapter 3: API Server & Routers
 
-In the [previous chapter](02_workflow_graph_.md), we saw how the [Workflow Graph](02_workflow_graph_.md) defines the step-by-step process for analyzing data within `llm-analytics`. But how do we actually *tell* `llm-analytics` to start an analysis? How do we send it the data (like a call transcript) and get the results back?
+In the [previous chapter](02_workflow_graph_.md), we saw how the [Workflow Graph](02_workflow_graph_.md) defines the step-by-step process for analyzing data within `llm-analytics`. But how do we actually _tell_ `llm-analytics` to start an analysis? How do we send it the data (like a call transcript) and get the results back?
 
 ## The Problem: Knocking on the Door
 
@@ -16,12 +23,12 @@ We need a front door, a reception desk, or a main switchboard to handle these in
 
 The **API Server** is the main entry point for `llm-analytics`. Think of it as the factory's front desk or main switchboard:
 
-*   **API (Application Programming Interface):** A set of rules and definitions that allow different software programs to communicate with each other. It's like a menu at a restaurant – it tells you what you can order (what functions are available) and how to order it (what information you need to provide).
-*   **Server:** The actual program that listens for incoming requests (phone calls or visitors to the front desk). In `llm-analytics`, we use a popular Python framework called **FastAPI** to build this server.
-*   **Endpoints (URLs):** Specific addresses or "phone extensions" for different tasks. For example, sending data for analysis might go to the `/analyzer` endpoint, while managing project settings might go to `/project`. These are like specific doors or counters at the front desk.
-*   **Requests (HTTP):** When an external system wants `llm-analytics` to do something, it sends a request, usually using the standard web protocol HTTP. This is like filling out a form or making a specific request at the front desk. Requests contain the data (e.g., the transcript) and specify which endpoint (e.g., `/analyzer`) they are for.
-*   **Responses (HTTP):** After processing the request, the API Server sends back a response, also using HTTP. This is the result of the task – the analysis, a confirmation message, or an error report. It's like the receptionist handing back the processed form or giving you an answer.
-*   **Routers:** Just like a large office building might group related departments together (Sales on Floor 1, Support on Floor 2), routers organize the endpoints into logical groups. We might have an `analytic_router` for all analysis tasks, a `project_router` for managing projects, etc. This keeps things organized.
+- **API (Application Programming Interface):** A set of rules and definitions that allow different software programs to communicate with each other. It's like a menu at a restaurant – it tells you what you can order (what functions are available) and how to order it (what information you need to provide).
+- **Server:** The actual program that listens for incoming requests (phone calls or visitors to the front desk). In `llm-analytics`, we use a popular Python framework called **FastAPI** to build this server.
+- **Endpoints (URLs):** Specific addresses or "phone extensions" for different tasks. For example, sending data for analysis might go to the `/analyzer` endpoint, while managing project settings might go to `/project`. These are like specific doors or counters at the front desk.
+- **Requests (HTTP):** When an external system wants `llm-analytics` to do something, it sends a request, usually using the standard web protocol HTTP. This is like filling out a form or making a specific request at the front desk. Requests contain the data (e.g., the transcript) and specify which endpoint (e.g., `/analyzer`) they are for.
+- **Responses (HTTP):** After processing the request, the API Server sends back a response, also using HTTP. This is the result of the task – the analysis, a confirmation message, or an error report. It's like the receptionist handing back the processed form or giving you an answer.
+- **Routers:** Just like a large office building might group related departments together (Sales on Floor 1, Support on Floor 2), routers organize the endpoints into logical groups. We might have an `analytic_router` for all analysis tasks, a `project_router` for managing projects, etc. This keeps things organized.
 
 So, the API Server listens for incoming HTTP requests at specific URLs (endpoints), figures out what needs to be done based on the URL and the data in the request, triggers the right internal process (like starting a [Workflow Graph](02_workflow_graph_.md) analysis), and sends back an HTTP response with the results.
 
@@ -40,8 +47,8 @@ Let's say you have a web application that needs to analyze a call transcript usi
       "content": {
         "callName": "call_123",
         "transcript": [
-          {"channel": 0, "text": "User: My internet is down!"},
-          {"channel": 1, "text": "Agent: Okay, let's check..."}
+          { "channel": 0, "text": "User: My internet is down!" },
+          { "channel": 1, "text": "Agent: Okay, let's check..." }
         ],
         "metadata": {},
         "agentChannel": 1
@@ -62,8 +69,10 @@ Let's say you have a web application that needs to analyze a call transcript usi
       "data": {
         "callName": "call_123",
         "resultTasks": {
-          "analyze_sentiment": {"sentiment": "negative"}, // Result from graph
-          "summarize_call": {"summary": "Customer reported internet outage..."} // Result from graph
+          "analyze_sentiment": { "sentiment": "negative" }, // Result from graph
+          "summarize_call": {
+            "summary": "Customer reported internet outage..."
+          } // Result from graph
         },
         "version": "v1"
       }
@@ -150,10 +159,10 @@ def run():
     )
 ```
 
-*   `FastAPI()` creates the main application object.
-*   `add_router(app)` plugs in all the different sets of endpoints.
-*   `@app.get("/")` defines a simple endpoint for the root URL.
-*   `uvicorn.run(...)` actually starts the server, making it listen for requests.
+- `FastAPI()` creates the main application object.
+- `add_router(app)` plugs in all the different sets of endpoints.
+- `@app.get("/")` defines a simple endpoint for the root URL.
+- `uvicorn.run(...)` actually starts the server, making it listen for requests.
 
 **2. Organizing Endpoints (`fala/api_server/routers/__init__.py`)**
 
@@ -180,8 +189,8 @@ def add_router(app: FastAPI):
     return app
 ```
 
-*   This acts like a central hub, making sure all the "departments" (routers) are connected to the main "reception desk" (the `app`).
-*   `prefix="/analyzer"` means all endpoints in `analytic_routers.py` will start with `/analyzer`.
+- This acts like a central hub, making sure all the "departments" (routers) are connected to the main "reception desk" (the `app`).
+- `prefix="/analyzer"` means all endpoints in `analytic_routers.py` will start with `/analyzer`.
 
 **3. Defining an Endpoint (`fala/api_server/routers/analytic_routers.py`)**
 
@@ -236,11 +245,11 @@ async def analyzer(
         return response_error(msg=str(e))
 ```
 
-*   `APIRouter()` creates a new router instance.
-*   `@router.post("/")` tells FastAPI that the function `analyzer` should handle HTTP POST requests sent to the path defined by the router's prefix (which was `/analyzer` in `__init__.py`).
-*   `Annotated[str, Body()]` tells FastAPI to expect `project_id` inside the JSON body of the request. `ContentAnalytic` does the same, but FastAPI also validates the incoming data against the structure defined in the `ContentAnalytic` class (from `fala/api_server/model_class.py`).
-*   The function then interacts with the `GraphManager` to get and run the appropriate [Workflow Graph](02_workflow_graph_.md).
-*   Finally, it uses helper functions (`response_success`, `response_error`) to create the standard HTTP JSON response.
+- `APIRouter()` creates a new router instance.
+- `@router.post("/")` tells FastAPI that the function `analyzer` should handle HTTP POST requests sent to the path defined by the router's prefix (which was `/analyzer` in `__init__.py`).
+- `Annotated[str, Body()]` tells FastAPI to expect `project_id` inside the JSON body of the request. `ContentAnalytic` does the same, but FastAPI also validates the incoming data against the structure defined in the `ContentAnalytic` class (from `fala/api_server/model_class.py`).
+- The function then interacts with the `GraphManager` to get and run the appropriate [Workflow Graph](02_workflow_graph_.md).
+- Finally, it uses helper functions (`response_success`, `response_error`) to create the standard HTTP JSON response.
 
 **4. Defining Data Structures (`fala/api_server/model_class.py` or `interface.py`)**
 
@@ -267,7 +276,7 @@ class ContentAnalytic: # Defines the expected structure for 'content' input
     agentChannel: int = 1
 ```
 
-*   This defines that `ContentAnalytic` should have a `callName` (string), a `transcript` (list of `Utterance` objects), etc. FastAPI uses this to ensure the data sent to `/analyzer` matches this format.
+- This defines that `ContentAnalytic` should have a `callName` (string), a `transcript` (list of `Utterance` objects), etc. FastAPI uses this to ensure the data sent to `/analyzer` matches this format.
 
 ## Conclusion
 

@@ -1,17 +1,24 @@
+---
+layout: default
+title: "Prompt Management"
+parent: "LLM Analytics"
+nav_order: 6
+---
+
 # Chapter 6: Prompt Management
 
 In the [previous chapter](05_graph_state_.md), we explored the [Graph State](05_graph_state_.md), which acts as the shared memory carrying data through our analysis workflows. Many steps in these workflows, implemented as [Runnables (Graph Nodes)](04_runnable__graph_node_.md), involve asking Large Language Models (LLMs) to perform tasks like summarizing text or analyzing sentiment.
 
-But how do we tell the LLM *exactly* what we want it to do? How do we give it clear instructions? And how can we easily update these instructions later?
+But how do we tell the LLM _exactly_ what we want it to do? How do we give it clear instructions? And how can we easily update these instructions later?
 
 ## The Problem: Giving Clear and Consistent Instructions to Your AI Helper
 
 Imagine you have a very capable AI helper (an LLM). You want it to analyze customer reviews and tell you if the customer is happy, unhappy, or neutral.
 
-*   **Initial Instruction:** You might tell it: "Analyze the sentiment of this review: {review_text}"
-*   **Need for Improvement:** Later, you realize this instruction isn't specific enough. You want the LLM to *only* output "positive", "negative", or "neutral". So, you need to update the instruction: "Analyze the sentiment of the following review and respond ONLY with 'positive', 'negative', or 'neutral'. Review: {review_text}"
-*   **Consistency:** You might have *several* different analysis workflows that all need to perform sentiment analysis. You want to make sure they all use the *exact same, improved instruction* without having to update it in many different places.
-*   **Experimentation:** Maybe you want to try out *another* version of the instruction to see if it works better (A/B testing). How can you easily switch between different instruction versions?
+- **Initial Instruction:** You might tell it: "Analyze the sentiment of this review: {review_text}"
+- **Need for Improvement:** Later, you realize this instruction isn't specific enough. You want the LLM to _only_ output "positive", "negative", or "neutral". So, you need to update the instruction: "Analyze the sentiment of the following review and respond ONLY with 'positive', 'negative', or 'neutral'. Review: {review_text}"
+- **Consistency:** You might have _several_ different analysis workflows that all need to perform sentiment analysis. You want to make sure they all use the _exact same, improved instruction_ without having to update it in many different places.
+- **Experimentation:** Maybe you want to try out _another_ version of the instruction to see if it works better (A/B testing). How can you easily switch between different instruction versions?
 
 We need a way to manage these LLM instructions (called **prompts**) systematically.
 
@@ -21,13 +28,13 @@ We need a way to manage these LLM instructions (called **prompts**) systematical
 
 Think of it like a cookbook:
 
-*   **Recipes (Prompts):** Each specific instruction you give to an LLM is like a recipe. It tells the LLM what ingredients (input data) to use and what steps to follow to produce the desired output (the analysis).
-*   **Cookbook (Storage):** You store these recipes (prompts) in a central place. This can be:
-    *   A simple text file in your project's configuration folder, typically named `prompts.yml`.
-    *   A dedicated online tool like **Langfuse**, which is specifically designed for monitoring and managing LLM applications, including prompts.
-*   **Recipe Versions (Versioning):** Just like recipes get updated, your prompts can have different versions. You might have `sentiment_prompt v1`, `sentiment_prompt v2`, etc. Langfuse is particularly good at tracking these versions automatically.
-*   **Recipe Labels (Labels):** You can put labels on specific versions, like "latest" (the newest stable version), "beta" (a version you're testing), or "production".
-*   **Librarian (`PromptLoader`):** When a part of your workflow needs to use a prompt (e.g., the sentiment analysis node), it doesn't contain the whole prompt text itself. Instead, it just asks the "librarian" – the `PromptLoader` – for the prompt recipe by its name (e.g., "sentiment_prompt") and maybe a specific version or label (e.g., "latest").
+- **Recipes (Prompts):** Each specific instruction you give to an LLM is like a recipe. It tells the LLM what ingredients (input data) to use and what steps to follow to produce the desired output (the analysis).
+- **Cookbook (Storage):** You store these recipes (prompts) in a central place. This can be:
+  - A simple text file in your project's configuration folder, typically named `prompts.yml`.
+  - A dedicated online tool like **Langfuse**, which is specifically designed for monitoring and managing LLM applications, including prompts.
+- **Recipe Versions (Versioning):** Just like recipes get updated, your prompts can have different versions. You might have `sentiment_prompt v1`, `sentiment_prompt v2`, etc. Langfuse is particularly good at tracking these versions automatically.
+- **Recipe Labels (Labels):** You can put labels on specific versions, like "latest" (the newest stable version), "beta" (a version you're testing), or "production".
+- **Librarian (`PromptLoader`):** When a part of your workflow needs to use a prompt (e.g., the sentiment analysis node), it doesn't contain the whole prompt text itself. Instead, it just asks the "librarian" – the `PromptLoader` – for the prompt recipe by its name (e.g., "sentiment_prompt") and maybe a specific version or label (e.g., "latest").
 
 This system ensures that:
 
@@ -48,42 +55,47 @@ Let's revisit our sentiment analysis example.
     - id: "analyze_sentiment"
       type: "llm"
       prompt: "sentiment_prompt" # Ask PromptLoader for this prompt name
-      prompt_label: "latest"     # Specifically ask for the 'latest' version/label
+      prompt_label: "latest" # Specifically ask for the 'latest' version/label
       task: "sentiment_result" # Where to store the final result in Graph State
     # ... other nodes ...
     ```
+
     Notice it only refers to the prompt by name (`sentiment_prompt`) and label (`latest`).
 
 2.  **Initial Prompt Storage (`prompts.yml` or Langfuse):**
-    *   **If using `prompts.yml`:**
 
-        ```yaml
-        # configs/sentiment_analysis/v1/prompts.yml
-        sentiment_prompt:
-          prompt: "Analyze the sentiment of this review: {{review_text}}"
-          variables: ["review_text"]
-          version: 1 # Your own version tracking
-          # config: { model_name: "gpt-3.5-turbo", ... } # LLM settings can also be stored here
-        ```
-    *   **If using Langfuse:** You would create a prompt named `sentiment_prompt` in the Langfuse UI with the same content and assign it the label "latest".
+    - **If using `prompts.yml`:**
+
+      ```yaml
+      # configs/sentiment_analysis/v1/prompts.yml
+      sentiment_prompt:
+        prompt: "Analyze the sentiment of this review: {{review_text}}"
+        variables: ["review_text"]
+        version: 1 # Your own version tracking
+        # config: { model_name: "gpt-3.5-turbo", ... } # LLM settings can also be stored here
+      ```
+
+    - **If using Langfuse:** You would create a prompt named `sentiment_prompt` in the Langfuse UI with the same content and assign it the label "latest".
 
 3.  **Running the Workflow:** When the `analyze_sentiment` node runs, the `RunnableBuilder` (from the [Runnable chapter](04_runnable__graph_node_.md)) uses the `PromptLoader`. The `PromptLoader` sees it needs `sentiment_prompt` with label `latest`. It checks Langfuse (if configured) first, then the `prompts.yml` file, finds the version labeled "latest" (or version 1 in the YAML example), and provides that prompt text and its details (like required variables) to the LLM Runnable.
 
 4.  **Updating the Prompt:** You realize you need a more specific instruction.
-    *   **If using `prompts.yml`:** You edit the file:
 
-        ```yaml
-        # configs/sentiment_analysis/v1/prompts.yml (Updated)
-        sentiment_prompt:
-          prompt: "Analyze the sentiment of the following review and respond ONLY with 'positive', 'negative', or 'neutral'. Review: {{review_text}}" # Updated text
-          variables: ["review_text"]
-          version: 2 # Updated version
-          # config: { ... }
-        # You might mark this as the new 'latest' implicitly or via comments/structure
-        ```
-    *   **If using Langfuse:** You go to the Langfuse UI, create a *new version* of the `sentiment_prompt` with the updated text, and move the "latest" label to this new version.
+    - **If using `prompts.yml`:** You edit the file:
 
-5.  **Running the Workflow Again:** The next time the `analyze_sentiment` node runs, the `PromptLoader` again asks for `sentiment_prompt` labeled `latest`. It now finds the *new* version (version 2 in YAML, or the newly labeled one in Langfuse) and provides *that* improved instruction to the LLM Runnable.
+      ```yaml
+      # configs/sentiment_analysis/v1/prompts.yml (Updated)
+      sentiment_prompt:
+        prompt: "Analyze the sentiment of the following review and respond ONLY with 'positive', 'negative', or 'neutral'. Review: {{review_text}}" # Updated text
+        variables: ["review_text"]
+        version: 2 # Updated version
+        # config: { ... }
+      # You might mark this as the new 'latest' implicitly or via comments/structure
+      ```
+
+    - **If using Langfuse:** You go to the Langfuse UI, create a _new version_ of the `sentiment_prompt` with the updated text, and move the "latest" label to this new version.
+
+5.  **Running the Workflow Again:** The next time the `analyze_sentiment` node runs, the `PromptLoader` again asks for `sentiment_prompt` labeled `latest`. It now finds the _new_ version (version 2 in YAML, or the newly labeled one in Langfuse) and provides _that_ improved instruction to the LLM Runnable.
 
 You successfully changed the LLM's instructions without touching the `workflow.yml` or any Python code!
 
@@ -95,8 +107,8 @@ When a [Runnable (Graph Node)](04_runnable__graph_node_.md) needs a prompt (like
 2.  **PromptLoader:** The `RunnableBuilder` calls the `PromptLoader`'s `get_prompt_item` method with the name, version, and/or label.
 3.  **Check Monitor First (e.g., Langfuse):** The `PromptLoader` checks if a monitoring tool (like Langfuse) is configured. If yes, it asks the monitor (`LangfuseMonitor.pull_prompt`) to retrieve the specified prompt version/label from the online service.
 4.  **Check Config File Second (`prompts.yml`):**
-    *   If the monitor isn't configured, *or* if the monitor couldn't find the requested prompt, the `PromptLoader` then looks inside the project's configuration, specifically for a `prompts` section (usually loaded from `prompts.yml`).
-    *   It searches for the prompt by name within this configuration data.
+    - If the monitor isn't configured, _or_ if the monitor couldn't find the requested prompt, the `PromptLoader` then looks inside the project's configuration, specifically for a `prompts` section (usually loaded from `prompts.yml`).
+    - It searches for the prompt by name within this configuration data.
 5.  **Return PromptItem:** If the prompt is found (either via monitor or config file), the `PromptLoader` packages its details (name, actual prompt text, required variables, version number, associated config) into a `PromptItem` object and returns it.
 6.  **Error:** If the prompt cannot be found in either location, an error might occur.
 
@@ -173,10 +185,10 @@ summary_prompt:
     max_tokens: 100
 ```
 
-*   Each top-level key (`sentiment_prompt`, `summary_prompt`) is a prompt name.
-*   `prompt`: Contains the template text. `{{variable}}` indicates where input data will be inserted.
-*   `variables`: Lists the expected input variable names.
-*   `version`, `labels`, `config`: Provide metadata and LLM parameters.
+- Each top-level key (`sentiment_prompt`, `summary_prompt`) is a prompt name.
+- `prompt`: Contains the template text. `{{variable}}` indicates where input data will be inserted.
+- `variables`: Lists the expected input variable names.
+- `version`, `labels`, `config`: Provide metadata and LLM parameters.
 
 **2. Referring to Prompts in Workflow (`workflow.yml`)**
 
@@ -197,7 +209,7 @@ workflow:
     # ... other nodes ...
 ```
 
-*   The `prompt` field tells the system which prompt recipe to fetch from the library.
+- The `prompt` field tells the system which prompt recipe to fetch from the library.
 
 **3. The Prompt Loader (`PromptLoader`)**
 
@@ -272,9 +284,9 @@ class PromptLoader:
 
 ```
 
-*   The `get_prompt_item` method orchestrates the lookup: monitor first, then config.
-*   `get_prompt_from_monitor` calls the specific monitor's `pull_prompt` method (we'll see Langfuse's version next).
-*   `get_prompt_from_config` looks up the `prompt_name` in the dictionary loaded from `prompts.yml` and packs the details into a `PromptItem`.
+- The `get_prompt_item` method orchestrates the lookup: monitor first, then config.
+- `get_prompt_from_monitor` calls the specific monitor's `pull_prompt` method (we'll see Langfuse's version next).
+- `get_prompt_from_config` looks up the `prompt_name` in the dictionary loaded from `prompts.yml` and packs the details into a `PromptItem`.
 
 **4. Fetching from Langfuse (`LangfuseMonitor`)**
 
@@ -325,17 +337,17 @@ class LangfuseMonitor: # Inherits from BaseMonitor
             return None # Return None if Langfuse doesn't have it or fails
 ```
 
-*   This uses the `langfuse` Python library to make an API call to the Langfuse service.
-*   It asks for the prompt by name and either version or label.
-*   If successful, it converts the result from Langfuse into the standard `PromptItem` object used by the rest of `llm-analytics`.
+- This uses the `langfuse` Python library to make an API call to the Langfuse service.
+- It asks for the prompt by name and either version or label.
+- If successful, it converts the result from Langfuse into the standard `PromptItem` object used by the rest of `llm-analytics`.
 
 ## Conclusion
 
 Prompt Management is essential for working effectively with LLMs. By treating prompts as managed assets, storing them centrally (in `prompts.yml` or a tool like Langfuse), and using versioning/labeling, `llm-analytics` makes it easy to:
 
-*   Keep LLM instructions consistent across different workflows.
-*   Update prompts without changing code.
-*   Experiment with different prompt versions (A/B testing).
+- Keep LLM instructions consistent across different workflows.
+- Update prompts without changing code.
+- Experiment with different prompt versions (A/B testing).
 
 The `PromptLoader` acts as the librarian, fetching the correct prompt recipe on demand based on name, version, or label specified in the workflow configuration. This separation of concerns makes your LLM workflows more robust, maintainable, and adaptable.
 

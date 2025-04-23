@@ -1,8 +1,15 @@
+---
+layout: default
+title: "Runnable"
+parent: "LLM Analytics"
+nav_order: 4
+---
+
 # Chapter 4: Runnable (Graph Node)
 
 In the [previous chapter](03_api_server___routers_.md), we learned how the [API Server & Routers](03_api_server___routers_.md) act as the front door, receiving requests and triggering analysis tasks. We also know from [Chapter 2](02_workflow_graph_.md) that these tasks are defined as a [Workflow Graph](02_workflow_graph_.md) – a kind of assembly line.
 
-But what are the individual *stations* on that assembly line? How does each step in the workflow actually *do* its specific job?
+But what are the individual _stations_ on that assembly line? How does each step in the workflow actually _do_ its specific job?
 
 ## The Problem: Defining the Work at Each Station
 
@@ -10,22 +17,22 @@ Imagine our text analysis assembly line ([Workflow Graph](02_workflow_graph_.md)
 
 Each station performs a different kind of work:
 
-*   One station needs to talk to a powerful AI (an LLM).
-*   Another needs to run some standard data cleanup code written in Python.
-*   Yet another might need to look up similar examples from a database.
+- One station needs to talk to a powerful AI (an LLM).
+- Another needs to run some standard data cleanup code written in Python.
+- Yet another might need to look up similar examples from a database.
 
-How do we define *what kind* of work happens at each specific node (station) in our graph? How does the system know whether to call an LLM or run a simple Python function for a particular step?
+How do we define _what kind_ of work happens at each specific node (station) in our graph? How does the system know whether to call an LLM or run a simple Python function for a particular step?
 
 ## The Solution: Runnables - The Workstations
 
-This is where the **Runnable** comes in. Think of a **Runnable** as the definition and the engine for a *single workstation* on the [Workflow Graph](02_workflow_graph_.md)'s assembly line.
+This is where the **Runnable** comes in. Think of a **Runnable** as the definition and the engine for a _single workstation_ on the [Workflow Graph](02_workflow_graph_.md)'s assembly line.
 
-*   **A Single Job:** Each Runnable represents one specific unit of work.
-*   **Variety of Tools:** Just like a real workstation might have different tools, a Runnable can represent different kinds of operations:
-    *   Calling an LLM (e.g., asking GPT-4 for sentiment).
-    *   Running a Python function (e.g., removing punctuation, formatting data).
-    *   Retrieving information (e.g., finding relevant past examples using [Search Engine / Vector Store Integration](07_search_engine___vector_store_integration_.md)).
-    *   Combining retrieval and LLM calls (Retrieval-Augmented Generation or RAG).
+- **A Single Job:** Each Runnable represents one specific unit of work.
+- **Variety of Tools:** Just like a real workstation might have different tools, a Runnable can represent different kinds of operations:
+  - Calling an LLM (e.g., asking GPT-4 for sentiment).
+  - Running a Python function (e.g., removing punctuation, formatting data).
+  - Retrieving information (e.g., finding relevant past examples using [Search Engine / Vector Store Integration](07_search_engine___vector_store_integration_.md)).
+  - Combining retrieval and LLM calls (Retrieval-Augmented Generation or RAG).
 
 Essentially, the nodes we defined in the [Workflow Graph](02_workflow_graph_.md) configuration are implemented as Runnables.
 
@@ -35,7 +42,7 @@ How does the system know which type of Runnable to create for each node? That's 
 
 Think of the `RunnableBuilder` as the factory foreman. When setting up the assembly line ([Workflow Graph](02_workflow_graph_.md)), the foreman reads the blueprint (your project's configuration file, e.g., `workflow.yml`).
 
-The blueprint specifies what *type* of workstation is needed at each point. For example:
+The blueprint specifies what _type_ of workstation is needed at each point. For example:
 
 ```yaml
 # configs/sentiment_analysis/v1/workflow.yml (Simplified Snippet)
@@ -43,11 +50,11 @@ The blueprint specifies what *type* of workstation is needed at each point. For 
 workflow:
   nodes:
     - id: "clean_text"
-      type: "function"   # Foreman, build a Function Runnable here!
+      type: "function" # Foreman, build a Function Runnable here!
       function: "remove_pii" # Use the 'remove_pii' Python function
 
     - id: "analyze_sentiment"
-      type: "llm"        # Foreman, build an LLM Runnable here!
+      type: "llm" # Foreman, build an LLM Runnable here!
       prompt: "sentiment_prompt" # Use this prompt for the LLM
 
     - id: "find_examples"
@@ -63,29 +70,33 @@ Based on the `type` field (and other related details) for each node in the confi
 Let's look at the main types of workstations the `RunnableBuilder` can create:
 
 1.  **LLM Runnable:**
-    *   **Job:** Interacts with a Large Language Model (like GPT, Claude, etc.).
-    *   **How:** Takes input data (often text and a prompt from [Prompt Management](06_prompt_management_.md)), sends it to the configured LLM, and gets the model's response (e.g., sentiment classification, summary).
-    *   **Config Key:** `type: "llm"`
+
+    - **Job:** Interacts with a Large Language Model (like GPT, Claude, etc.).
+    - **How:** Takes input data (often text and a prompt from [Prompt Management](06_prompt_management_.md)), sends it to the configured LLM, and gets the model's response (e.g., sentiment classification, summary).
+    - **Config Key:** `type: "llm"`
 
 2.  **Function Runnable:**
-    *   **Job:** Executes a specific Python function you've defined.
-    *   **How:** Takes data from the [Graph State](05_graph_state_.md), runs your Python code on it (e.g., cleaning data, formatting text, performing calculations), and returns the modified data. These functions are often related to [Data Processing Functions](08_data_processing_functions_.md).
-    *   **Config Key:** `type: "function"`
+
+    - **Job:** Executes a specific Python function you've defined.
+    - **How:** Takes data from the [Graph State](05_graph_state_.md), runs your Python code on it (e.g., cleaning data, formatting text, performing calculations), and returns the modified data. These functions are often related to [Data Processing Functions](08_data_processing_functions_.md).
+    - **Config Key:** `type: "function"`
 
 3.  **Retrieval Runnable:**
-    *   **Job:** Fetches relevant information from a data source, typically a vector database via [Search Engine / Vector Store Integration](07_search_engine___vector_store_integration_.md).
-    *   **How:** Takes some input query (like the customer's issue), searches the database for similar past examples or relevant documents, and returns the found information.
-    *   **Config Key:** `type: "retrieval"`
+
+    - **Job:** Fetches relevant information from a data source, typically a vector database via [Search Engine / Vector Store Integration](07_search_engine___vector_store_integration_.md).
+    - **How:** Takes some input query (like the customer's issue), searches the database for similar past examples or relevant documents, and returns the found information.
+    - **Config Key:** `type: "retrieval"`
 
 4.  **RAG (Retrieval-Augmented Generation) Runnable:**
-    *   **Job:** Combines retrieval *and* LLM generation.
-    *   **How:** First, it retrieves relevant information (like the Retrieval Runnable), then it feeds that information along with the original input and a prompt to an LLM to generate a more informed response.
-    *   **Config Key:** `type: "rag"` (Often uses LLM config fields too).
+
+    - **Job:** Combines retrieval _and_ LLM generation.
+    - **How:** First, it retrieves relevant information (like the Retrieval Runnable), then it feeds that information along with the original input and a prompt to an LLM to generate a more informed response.
+    - **Config Key:** `type: "rag"` (Often uses LLM config fields too).
 
 5.  **Prompt Runnable:**
-    *   **Job:** Formats a prompt string using data from the state.
-    *   **How:** Takes a prompt template and fills in the blanks using current data in the [Graph State](05_graph_state_.md). Useful for preparing complex inputs for other nodes.
-    *   **Config Key:** `type: "prompt"`
+    - **Job:** Formats a prompt string using data from the state.
+    - **How:** Takes a prompt template and fills in the blanks using current data in the [Graph State](05_graph_state_.md). Useful for preparing complex inputs for other nodes.
+    - **Config Key:** `type: "prompt"`
 
 ## Under the Hood: How a Runnable Executes
 
@@ -94,9 +105,9 @@ When the [Workflow Graph](02_workflow_graph_.md) reaches a specific node during 
 1.  **Invoke:** The graph execution engine (LangGraph) calls the `Runnable` object associated with that node.
 2.  **Input (State):** The Runnable automatically receives the current [Graph State](05_graph_state_.md) as its input. This state contains all the data produced by previous nodes.
 3.  **Execute:** The Runnable performs its specific task based on its type:
-    *   An LLM Runnable constructs the prompt using data from the state and calls the LLM API.
-    *   A Function Runnable calls the designated Python function, passing relevant data from the state.
-    *   A Retrieval Runnable queries the search engine using data from the state.
+    - An LLM Runnable constructs the prompt using data from the state and calls the LLM API.
+    - A Function Runnable calls the designated Python function, passing relevant data from the state.
+    - A Retrieval Runnable queries the search engine using data from the state.
 4.  **Output (Update State):** The Runnable returns its result. This result is then used to update the [Graph State](05_graph_state_.md), making the new information available to subsequent nodes in the graph.
 
 ```mermaid
@@ -239,11 +250,11 @@ class RunnableBuilder:
         return chain, variables
 ```
 
-*   **`build_runnable`:** This is the core method. It checks the `type` in the `runnable_config` (which comes from your `workflow.yml`) and calls the appropriate internal `_build_...` method.
-*   **`_build_function_runnable`:** This is simple. It just looks up the requested function name (e.g., `"remove_pii"`) in a dictionary (`self.function_mappings`) that was populated by `_load_function_mappings` and returns the corresponding Python function object.
-*   **`_build_llm_runnable`:** This is more involved. It loads the prompt, sets up the LLM call (potentially creating a LangChain "chain"), and defines a small wrapper function (`llm_runnable_func`) that knows how to extract necessary data from the [Graph State](05_graph_state_.md), run the LLM chain, and format the output to update the state. This wrapper function is what the graph actually executes.
-*   **`_load_function_mappings`:** This helper function looks for Python files (like `pre_processors.py`, `post_processors.py`) in standard locations (`fala/workflow/runnables/function_runnables/`) and project-specific locations (`configs/your_project/v1/function_runnables/`) to find the Python functions you can use in your `function` type nodes.
-*   **Node Configs:** The structures like `LLMNodeConfig`, `FunctionNodeConfig` (imported from `fala/workflow/graph/graph_configs.py`) define exactly *which* configuration keys are expected for each node type in your `workflow.yml`.
+- **`build_runnable`:** This is the core method. It checks the `type` in the `runnable_config` (which comes from your `workflow.yml`) and calls the appropriate internal `_build_...` method.
+- **`_build_function_runnable`:** This is simple. It just looks up the requested function name (e.g., `"remove_pii"`) in a dictionary (`self.function_mappings`) that was populated by `_load_function_mappings` and returns the corresponding Python function object.
+- **`_build_llm_runnable`:** This is more involved. It loads the prompt, sets up the LLM call (potentially creating a LangChain "chain"), and defines a small wrapper function (`llm_runnable_func`) that knows how to extract necessary data from the [Graph State](05_graph_state_.md), run the LLM chain, and format the output to update the state. This wrapper function is what the graph actually executes.
+- **`_load_function_mappings`:** This helper function looks for Python files (like `pre_processors.py`, `post_processors.py`) in standard locations (`fala/workflow/runnables/function_runnables/`) and project-specific locations (`configs/your_project/v1/function_runnables/`) to find the Python functions you can use in your `function` type nodes.
+- **Node Configs:** The structures like `LLMNodeConfig`, `FunctionNodeConfig` (imported from `fala/workflow/graph/graph_configs.py`) define exactly _which_ configuration keys are expected for each node type in your `workflow.yml`.
 
 ## Conclusion
 
