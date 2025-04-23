@@ -4,11 +4,17 @@ theme: just-the-docs
 
 url: https://vuminhph.github.io/tutorial-code-docs
 
+aux_links:
+  Template Repository: https://github.com/vuminhph/tutorial-code-docs
+
 # Mermaid settings
 mermaid:
   version: "11.6.0"
   config: |
     directionLR
 
-aux_links:
-  Template Repository: https://github.com/vuminhph/tutorial-code-docs
+# Navigation
+nav_sort: case_sensitive
+
+nav:
+  - Home: index.md
