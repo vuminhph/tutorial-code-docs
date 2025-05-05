@@ -14,6 +14,10 @@ def get_files(doc_path):
     
     return file_paths
 
+def get_nav_order(doc_path):
+    doc_dir = os.path.dirname(doc_path)
+    return len(os.listdir(doc_dir)) + 1
+
 def add_frontmatter(file_path, doc_name, nav_order):
     file_name = os.path.basename(file_path)
     
@@ -21,8 +25,7 @@ def add_frontmatter(file_path, doc_name, nav_order):
         title = doc_name
         nav_order = nav_order
 
-        frontmatter = f"""
----
+        frontmatter = f"""---
 layout: default
 title: "{doc_name}"
 nav_order: {nav_order}
@@ -40,8 +43,7 @@ has_children: true
                 nav_order = int(line.split(":")[0].split(" ")[-1])
                 break
 
-        frontmatter = f"""
----
+        frontmatter = f"""---
 layout: default
 title: "{title}"
 parent: "{doc_name}"
@@ -62,12 +64,15 @@ def main():
     parser = ArgumentParser()
     parser.add_argument("--doc-name", type=str, required=True)
     parser.add_argument("--doc-path", type=str, required=True)
-    parser.add_argument("--nav-order", type=int, required=True)
+    parser.add_argument("--nav-order", type=int, default=None)
     args = parser.parse_args()
 
     doc_name = args.doc_name
     doc_path = args.doc_path
-    nav_order = args.nav_order
+    if args.nav_order: 
+        nav_order = args.nav_order
+    else:
+        nav_order = get_nav_order(doc_path)
 
     files = get_files(doc_path)
     for file in files:
