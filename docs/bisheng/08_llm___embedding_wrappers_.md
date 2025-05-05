@@ -1,4 +1,3 @@
-
 ---
 layout: default
 title: "LLM & Embedding Wrappers"
@@ -10,7 +9,7 @@ nav_order: 8
 
 Welcome back! In [Chapter 7: Interface Layer](07_interface_layer_.md), we saw how Bisheng creates a "catalog" that defines all the available building blocks, like different Large Language Models (LLMs) and text embedding models. This catalog tells the UI what options exist and what settings they need.
 
-But once you've chosen a specific LLM (like OpenAI's GPT-4) or an embedding model (like one hosted locally) in your workflow or assistant, how does Bisheng's core logic actually *talk* to it? Different models have different ways of being called – some use specific web APIs, others might run on a local server with a unique protocol. How does Bisheng handle this variety without needing separate code for every single model type?
+But once you've chosen a specific LLM (like OpenAI's GPT-4) or an embedding model (like one hosted locally) in your workflow or assistant, how does Bisheng's core logic actually _talk_ to it? Different models have different ways of being called – some use specific web APIs, others might run on a local server with a unique protocol. How does Bisheng handle this variety without needing separate code for every single model type?
 
 This is where **LLM & Embedding Wrappers** come into play.
 
@@ -18,9 +17,9 @@ This is where **LLM & Embedding Wrappers** come into play.
 
 Imagine you're building a Bisheng workflow. You might want to:
 
-*   Use OpenAI's `gpt-3.5-turbo` for a quick initial summary.
-*   Then use a powerful local model hosted via Bisheng RT for more complex reasoning.
-*   And use a specialized embedding model like `bge-large-zh` to understand Chinese text for a RAG step.
+- Use OpenAI's `gpt-3.5-turbo` for a quick initial summary.
+- Then use a powerful local model hosted via Bisheng RT for more complex reasoning.
+- And use a specialized embedding model like `bge-large-zh` to understand Chinese text for a RAG step.
 
 Each of these models requires different setup, different API calls or server interactions, and different ways to handle inputs and outputs. Writing code to handle each one individually within your workflow logic would be repetitive and complex.
 
@@ -32,9 +31,9 @@ Think of different LLMs and embedding models as different electronic devices: an
 
 An **LLM or Embedding Wrapper** is like a **universal remote control**. It offers a standard set of buttons (methods) like `generate_response`, `stream_response`, `embed_text`, `embed_documents`. When you press a button on the universal remote:
 
-*   You (Bisheng's core logic) don't need to know the specific brand or model of the device.
-*   The universal remote (the wrapper) knows which device it's paired with.
-*   It translates your standard command (e.g., "generate response") into the specific sequence of signals required by that particular device (e.g., formatting the API request correctly for OpenAI, sending a request to the Bisheng RT server).
+- You (Bisheng's core logic) don't need to know the specific brand or model of the device.
+- The universal remote (the wrapper) knows which device it's paired with.
+- It translates your standard command (e.g., "generate response") into the specific sequence of signals required by that particular device (e.g., formatting the API request correctly for OpenAI, sending a request to the Bisheng RT server).
 
 This makes it incredibly easy to switch devices (models) without changing how you use the remote (how Bisheng's core logic calls the model).
 
@@ -42,10 +41,10 @@ This makes it incredibly easy to switch devices (models) without changing how yo
 
 1.  **Wrapper:** A piece of code (usually a Python class) that "wraps" around the specific logic needed to communicate with a particular type of LLM or embedding model provider (e.g., OpenAI API, a local HuggingFace model, Bisheng RT server).
 2.  **Uniform Interface:** The most important aspect. All LLM wrappers expose the same core functions (methods) for Bisheng to use, such as `_generate` (for getting a response) or `_stream` (for getting a response piece by piece). Similarly, all Embedding wrappers expose methods like `embed_documents` (for a list of texts) and `embed_query` (for a single text). This consistency is achieved by having them inherit from common base classes (like LangChain's `BaseChatModel` or `Embeddings`).
-3.  **Provider-Specific Logic:** *Inside* each wrapper is the code that handles the unique details of a specific provider. For example:
-    *   An OpenAI wrapper knows how to format requests for the `api.openai.com` endpoint, handle API keys, and parse OpenAI's specific JSON response structure.
-    *   A Bisheng RT wrapper (like `HostChatGLM`) knows how to send requests to the correct local server URL (`host_base_url`), format the JSON payload expected by that server, and handle its response.
-    *   An Embedding wrapper knows whether the model expects text prefixed with "query: " or "passage: ".
+3.  **Provider-Specific Logic:** _Inside_ each wrapper is the code that handles the unique details of a specific provider. For example:
+    - An OpenAI wrapper knows how to format requests for the `api.openai.com` endpoint, handle API keys, and parse OpenAI's specific JSON response structure.
+    - A Bisheng RT wrapper (like `HostChatGLM`) knows how to send requests to the correct local server URL (`host_base_url`), format the JSON payload expected by that server, and handle its response.
+    - An Embedding wrapper knows whether the model expects text prefixed with "query: " or "passage: ".
 
 **How It Works: Using a Wrapper**
 
@@ -53,11 +52,11 @@ When you configure a node in a Bisheng workflow (or configure an assistant) to u
 
 1.  **Configuration:** You select "ZhipuAI GLM-4" and provide necessary details (like an API key) using the schema from the [Interface Layer](07_interface_layer_.md).
 2.  **Loading:** When the workflow runs, Bisheng loads the corresponding **wrapper** class (e.g., `ChatZhipuAI` from `bisheng_langchain.chat_models`). It creates an instance of this wrapper, configured with your settings.
-3.  **Interaction:** The workflow node (or assistant logic) interacts with the model *through the wrapper's standard interface*. For example, it calls `llm_wrapper.generate(messages)` or `llm_wrapper.stream(messages)`.
+3.  **Interaction:** The workflow node (or assistant logic) interacts with the model _through the wrapper's standard interface_. For example, it calls `llm_wrapper.generate(messages)` or `llm_wrapper.stream(messages)`.
 4.  **Execution:** The `ChatZhipuAI` wrapper instance receives this call. Internally, it performs the ZhipuAI-specific actions (authenticates, formats the request, calls the ZhipuAI API, parses the result).
 5.  **Result:** The wrapper returns the result in a standard format (e.g., a `ChatResult` object) that the workflow node understands.
 
-If you later decide to switch the model to OpenAI's GPT-4, you just change the configuration. Bisheng will load the `ChatOpenAI` wrapper instead. The workflow node's code *doesn't change* because it still calls the same standard `llm_wrapper.generate(messages)` method.
+If you later decide to switch the model to OpenAI's GPT-4, you just change the configuration. Bisheng will load the `ChatOpenAI` wrapper instead. The workflow node's code _doesn't change_ because it still calls the same standard `llm_wrapper.generate(messages)` method.
 
 **Looking at the Code (Simplified Wrappers)**
 
@@ -100,7 +99,7 @@ class Embeddings(ABC):
         pass
 ```
 
-*   These base classes force all specific wrappers (like `ChatZhipuAI` or `HostEmbeddings`) to implement the core methods (`_generate`, `embed_documents`, `embed_query`), ensuring a consistent interface.
+- These base classes force all specific wrappers (like `ChatZhipuAI` or `HostEmbeddings`) to implement the core methods (`_generate`, `embed_documents`, `embed_query`), ensuring a consistent interface.
 
 **2. Example: Chat LLM Wrappers**
 
@@ -179,11 +178,11 @@ class HostChatGLM(BaseChatModel):
     # ... other methods ...
 ```
 
-*   Notice both wrappers implement `_generate`.
-*   `ChatZhipuAI` uses the `zhipuai` library to make the API call.
-*   `HostChatGLM` uses the `requests` library to make a direct HTTP call to a specified URL (`host_base_url`).
-*   Both handle provider-specific message formatting and parameter names internally.
-*   Both convert the provider-specific response back into the standard `ChatResult` format.
+- Notice both wrappers implement `_generate`.
+- `ChatZhipuAI` uses the `zhipuai` library to make the API call.
+- `HostChatGLM` uses the `requests` library to make a direct HTTP call to a specified URL (`host_base_url`).
+- Both handle provider-specific message formatting and parameter names internally.
+- Both convert the provider-specific response back into the standard `ChatResult` format.
 
 **3. Example: Embedding Wrappers**
 
@@ -249,14 +248,14 @@ class HostEmbeddings(Embeddings):
         return self.embed([text], emb_type='query')[0]
 ```
 
-*   Both implement `embed_documents` and `embed_query`.
-*   `WenxinEmbeddings` uses a dedicated `WenxinEmbeddingClient` for its API interaction.
-*   `HostEmbeddings` uses `requests.post` to call a generic local endpoint.
-*   They handle specific parameters (like `emb_type` for `HostEmbeddings`) internally.
+- Both implement `embed_documents` and `embed_query`.
+- `WenxinEmbeddings` uses a dedicated `WenxinEmbeddingClient` for its API interaction.
+- `HostEmbeddings` uses `requests.post` to call a generic local endpoint.
+- They handle specific parameters (like `emb_type` for `HostEmbeddings`) internally.
 
 **4. Bisheng's Own Wrappers (`BishengLLM`, `BishengEmbedding`)**
 
-Bisheng adds another layer on top. When you select a model from the Model Management section, Bisheng uses wrappers like `BishengLLM` or `BishengEmbedding`. These act as *factories* or *dispatchers*.
+Bisheng adds another layer on top. When you select a model from the Model Management section, Bisheng uses wrappers like `BishengLLM` or `BishengEmbedding`. These act as _factories_ or _dispatchers_.
 
 ```python
 # Simplified from src/backend/bisheng/interface/llms/custom.py
@@ -304,10 +303,10 @@ class BishengLLM(BaseChatModel):
     # ... _get_llm_params prepares dict based on server/model config ...
 ```
 
-*   `BishengLLM` (and `BishengEmbedding`) takes a `model_id` (referencing a model configured in Bisheng's database).
-*   In its `__init__`, it looks up the model's configuration, determines the correct underlying wrapper class (like `ChatOpenAI`, `HostChatGLM`, `WenxinEmbeddings`), prepares the necessary parameters (API keys, base URLs from the database), and creates an instance of that specific wrapper, storing it in `self.llm` (or `self.embeddings`).
-*   Its core methods (`_generate`, `embed_documents`, etc.) simply *delegate* the call to the underlying wrapper instance (`self.llm._generate(...)`).
-*   Crucially, `BishengLLM`/`BishengEmbedding` also add Bisheng-specific logic like checking rate limits and updating the model's online/offline status in the database based on success or failure.
+- `BishengLLM` (and `BishengEmbedding`) takes a `model_id` (referencing a model configured in Bisheng's database).
+- In its `__init__`, it looks up the model's configuration, determines the correct underlying wrapper class (like `ChatOpenAI`, `HostChatGLM`, `WenxinEmbeddings`), prepares the necessary parameters (API keys, base URLs from the database), and creates an instance of that specific wrapper, storing it in `self.llm` (or `self.embeddings`).
+- Its core methods (`_generate`, `embed_documents`, etc.) simply _delegate_ the call to the underlying wrapper instance (`self.llm._generate(...)`).
+- Crucially, `BishengLLM`/`BishengEmbedding` also add Bisheng-specific logic like checking rate limits and updating the model's online/offline status in the database based on success or failure.
 
 **Internal Implementation Walkthrough**
 
@@ -316,15 +315,15 @@ Let's trace what happens when a component in Bisheng (like a workflow node) need
 1.  **Request:** The node needs to use the LLM identified by `model_id=5`.
 2.  **Instantiation:** Bisheng creates an instance: `llm_instance = BishengLLM(model_id=5, temperature=0.5)`.
 3.  **`BishengLLM.__init__`:**
-    *   Loads configuration for `model_id=5` from the database ([Chapter 9: Database Models](09_database_models_.md)). Let's say this model is `gpt-4` hosted on an `Azure OpenAI` server.
-    *   Determines the underlying wrapper should be `AzureChatOpenAI`.
-    *   Extracts parameters like `azure_endpoint`, `openai_api_key`, `openai_api_version`, `azure_deployment` (which is `gpt-4` here) from the database config.
-    *   Adds the passed `temperature=0.5`.
-    *   Creates the actual instance: `self.llm = AzureChatOpenAI(azure_endpoint=..., openai_api_key=..., ..., temperature=0.5)`.
+    - Loads configuration for `model_id=5` from the database ([Chapter 9: Database Models](09_database_models_.md)). Let's say this model is `gpt-4` hosted on an `Azure OpenAI` server.
+    - Determines the underlying wrapper should be `AzureChatOpenAI`.
+    - Extracts parameters like `azure_endpoint`, `openai_api_key`, `openai_api_version`, `azure_deployment` (which is `gpt-4` here) from the database config.
+    - Adds the passed `temperature=0.5`.
+    - Creates the actual instance: `self.llm = AzureChatOpenAI(azure_endpoint=..., openai_api_key=..., ..., temperature=0.5)`.
 4.  **Usage:** The node calls the standard method: `result = llm_instance.generate(messages)`.
 5.  **Delegation & Bisheng Logic:** `BishengLLM._generate` is called.
-    *   It might check if usage limits for this model/server are exceeded.
-    *   It calls `self.llm._generate(messages)` (which is the `AzureChatOpenAI` instance's method).
+    - It might check if usage limits for this model/server are exceeded.
+    - It calls `self.llm._generate(messages)` (which is the `AzureChatOpenAI` instance's method).
 6.  **Wrapper Execution:** `AzureChatOpenAI._generate` runs. It formats the request according to Azure OpenAI specifications and makes the API call to the `azure_endpoint`.
 7.  **Result Handling:** The Azure API response is received and parsed by `AzureChatOpenAI` into a standard `ChatResult`.
 8.  **Return & Status Update:** The `ChatResult` is returned back up the chain. `BishengLLM` might update the model's status in the database (e.g., mark it as successfully used).
@@ -363,11 +362,11 @@ sequenceDiagram
 
 LLM & Embedding Wrappers are fundamental and used by many other components:
 
-*   They are the concrete implementations chosen and configured via the [Interface Layer](07_interface_layer_.md).
-*   They are invoked by the [GPTS / Assistant Abstraction](03_gpts___assistant_abstraction_.md) to generate responses and use tools that might require embeddings.
-*   They are used within nodes of the [Workflow Engine](04_workflow_engine_.md) (e.g., `LLMNode`, `EmbeddingNode`).
-*   They are crucial for the [RAG Pipeline](06_rag_pipeline_.md) to embed documents/queries (using Embedding Wrappers) and generate answers from context (using LLM Wrappers).
-*   Their configuration (API keys, base URLs) often relies on settings managed by [Configuration Management](10_configuration_management_.md) and stored in [Database Models](09_database_models_.md).
+- They are the concrete implementations chosen and configured via the [Interface Layer](07_interface_layer_.md).
+- They are invoked by the [GPTS / Assistant Abstraction](03_gpts___assistant_abstraction_.md) to generate responses and use tools that might require embeddings.
+- They are used within nodes of the [Workflow Engine](04_workflow_engine_.md) (e.g., `LLMNode`, `EmbeddingNode`).
+- They are crucial for the [RAG Pipeline](06_rag_pipeline_.md) to embed documents/queries (using Embedding Wrappers) and generate answers from context (using LLM Wrappers).
+- Their configuration (API keys, base URLs) often relies on settings managed by [Configuration Management](10_configuration_management_.md) and stored in [Database Models](09_database_models_.md).
 
 **Conclusion**
 

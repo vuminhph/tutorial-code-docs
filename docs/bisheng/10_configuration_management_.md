@@ -1,4 +1,3 @@
-
 ---
 layout: default
 title: "Configuration Management"
@@ -8,7 +7,7 @@ nav_order: 10
 
 # Chapter 10: Configuration Management
 
-Welcome to the final chapter of our Bisheng tutorial series! In [Chapter 9: Database Models](09_database_models_.md), we learned how Bisheng structures and stores essential data like workflows, users, and knowledge base information in a persistent database. But how does Bisheng know *which* database to connect to? Or where to find the API key for OpenAI? Or the address of the Milvus vector store?
+Welcome to the final chapter of our Bisheng tutorial series! In [Chapter 9: Database Models](09_database_models_.md), we learned how Bisheng structures and stores essential data like workflows, users, and knowledge base information in a persistent database. But how does Bisheng know _which_ database to connect to? Or where to find the API key for OpenAI? Or the address of the Milvus vector store?
 
 These kinds of system-wide settings need to be managed centrally. That's the role of **Configuration Management**.
 
@@ -16,10 +15,10 @@ These kinds of system-wide settings need to be managed centrally. That's the rol
 
 Imagine you're setting up Bisheng for the first time. You need to tell it:
 
-*   The address and login details for your PostgreSQL database.
-*   Your secret API key for accessing ZhipuAI models.
-*   The location of your Minio server for storing files.
-*   Maybe some feature flags, like enabling a new experimental feature.
+- The address and login details for your PostgreSQL database.
+- Your secret API key for accessing ZhipuAI models.
+- The location of your Minio server for storing files.
+- Maybe some feature flags, like enabling a new experimental feature.
 
 Hardcoding these values directly into the main application code would be a terrible idea! It would make it impossible to deploy Bisheng in different environments (like development, testing, or production) without changing the code each time. It would also be insecure to store sensitive information like API keys directly in the code.
 
@@ -35,23 +34,23 @@ It then makes these settings easily accessible to the rest of the Bisheng applic
 
 Think of Configuration Management as the restaurant's main control panel or master configuration file. This panel holds crucial operational details:
 
-*   **Supplier Address (Database URL):** The exact location and login for the main ingredient supplier (the database).
-*   **Premium Service Codes (API Keys):** Secret codes needed to access special services, like a premium delivery network (an external LLM API).
-*   **Storage Unit Location (Vector Store Address):** Where specialized ingredients are kept (e.g., Milvus or Elasticsearch connection details).
-*   **File Cabinet Location (Object Storage Config):** Where documents and files are archived (e.g., Minio settings).
-*   **Operational Parameters (Cache Settings, Feature Flags):** Rules for how the kitchen operates, like how long to keep prepped ingredients fresh (cache expiration) or whether to offer the "Chef's Special" today (a feature flag).
+- **Supplier Address (Database URL):** The exact location and login for the main ingredient supplier (the database).
+- **Premium Service Codes (API Keys):** Secret codes needed to access special services, like a premium delivery network (an external LLM API).
+- **Storage Unit Location (Vector Store Address):** Where specialized ingredients are kept (e.g., Milvus or Elasticsearch connection details).
+- **File Cabinet Location (Object Storage Config):** Where documents and files are archived (e.g., Minio settings).
+- **Operational Parameters (Cache Settings, Feature Flags):** Rules for how the kitchen operates, like how long to keep prepped ingredients fresh (cache expiration) or whether to offer the "Chef's Special" today (a feature flag).
 
 This central panel ensures all parts of the restaurant (kitchen, front-of-house) use the same, correct information.
 
 **Key Concepts**
 
 1.  **Configuration Sources:** Where Bisheng looks for settings. The primary sources are:
-    *   **YAML Files (`config.yaml`, `initdb_config.yaml`):** Provide baseline or default configurations. Easy for humans to read and edit.
-    *   **Environment Variables:** Set outside the application code (e.g., `export DATABASE_URL="postgresql://..."`). Often used to override file settings, especially for sensitive data or environment-specific values during deployment.
-    *   **Database (`config` table):** Used for specific configurations that might need to be managed dynamically, often initialized from `initdb_config.yaml`.
+    - **YAML Files (`config.yaml`, `initdb_config.yaml`):** Provide baseline or default configurations. Easy for humans to read and edit.
+    - **Environment Variables:** Set outside the application code (e.g., `export DATABASE_URL="postgresql://..."`). Often used to override file settings, especially for sensitive data or environment-specific values during deployment.
+    - **Database (`config` table):** Used for specific configurations that might need to be managed dynamically, often initialized from `initdb_config.yaml`.
 2.  **Loading Priority:** When the same setting is defined in multiple places, there's an order of precedence. Typically: **Environment Variables override File settings**. Database settings might override others for specific dynamic keys. This allows defaults in files, but easy customization for deployment via environment variables.
 3.  **Centralized Access (`settings` object):** Bisheng loads all these configurations into a central Python object, usually available as `settings` (an instance of the `Settings` class defined in `bisheng.settings`). Any part of the backend code that needs a setting (like the database URL or an API key) can simply import and use this `settings` object.
-4.  **Schema Definition (`Settings` class):** The `Settings` class (using Pydantic/SQLModel) defines the *expected* structure and types of the configuration values. This helps validate settings when they are loaded.
+4.  **Schema Definition (`Settings` class):** The `Settings` class (using Pydantic/SQLModel) defines the _expected_ structure and types of the configuration values. This helps validate settings when they are loaded.
 
 **How It Works: Loading the Database URL**
 
@@ -62,8 +61,8 @@ Let's trace how Bisheng figures out the database URL when it starts up:
 3.  **Load from File:** The `Settings` class initialization logic (e.g., `load_settings_from_yaml`) reads the `config.yaml` file. It finds a `database_url` entry there (perhaps a default like `sqlite:///./bisheng.db`).
 4.  **Check Environment Variable:** The initialization logic (specifically the `@validator('database_url', pre=True)` in `settings.py`) checks if an environment variable named `BISHENG_DATABASE_URL` exists.
 5.  **Override (if needed):**
-    *   If `BISHENG_DATABASE_URL` *is* set (e.g., to `postgresql://user:pass@host/db`), its value *replaces* the value read from the file.
-    *   If it's *not* set, the value from the file is kept.
+    - If `BISHENG_DATABASE_URL` _is_ set (e.g., to `postgresql://user:pass@host/db`), its value _replaces_ the value read from the file.
+    - If it's _not_ set, the value from the file is kept.
 6.  **Store in `settings`:** The final determined value for `database_url` is stored in the `settings` object instance.
 7.  **Usage:** Later, when the [Backend API & Services](01_backend_api___services_.md) needs to connect to the database, it accesses `settings.database_url` to get the correct connection string.
 
@@ -102,11 +101,10 @@ object_storage:
 workflow_conf:
   timeout: 720 # minutes
   max_steps: 50
-
 # Note: API keys are usually NOT put here, but loaded from env vars or DB.
 ```
 
-*   This YAML file defines default values for database, Redis, vector stores, etc.
+- This YAML file defines default values for database, Redis, vector stores, etc.
 
 **2. `settings.py` (Simplified `Settings` Class)**
 
@@ -222,11 +220,11 @@ settings = Settings(**file_settings) # Pydantic handles env var loading here
 # Now 'settings' object holds the final configuration values
 ```
 
-*   The `Settings` class defines the expected configuration fields.
-*   `BaseSettings` and `Config.env_prefix` help automatically load settings from environment variables (e.g., `BISHENG_DATABASE_URL` overrides `database_url`).
-*   Custom `@validator` methods can implement specific loading logic (like prioritizing environment variables).
-*   The `get_all_config` method shows how some settings (like `default_llm`) might be loaded dynamically from the database `config` table (initialized from `initdb_config.yaml`).
-*   The loading mechanism first reads the YAML file, then initializes the `Settings` object, which automatically incorporates environment variables due to `pydantic-settings`.
+- The `Settings` class defines the expected configuration fields.
+- `BaseSettings` and `Config.env_prefix` help automatically load settings from environment variables (e.g., `BISHENG_DATABASE_URL` overrides `database_url`).
+- Custom `@validator` methods can implement specific loading logic (like prioritizing environment variables).
+- The `get_all_config` method shows how some settings (like `default_llm`) might be loaded dynamically from the database `config` table (initialized from `initdb_config.yaml`).
+- The loading mechanism first reads the YAML file, then initializes the `Settings` object, which automatically incorporates environment variables due to `pydantic-settings`.
 
 **3. Accessing Configuration**
 
@@ -252,9 +250,9 @@ default_llm_config = settings.get_from_db('default_llm')
 print(f"Default LLM Config from DB: {default_llm_config}")
 ```
 
-*   Code imports the single `settings` instance.
-*   It accesses configuration values like attributes (e.g., `settings.database_url`, `settings.object_storage.minio.endpoint`).
-*   For settings potentially stored in the database, it calls helper methods like `settings.get_from_db()`.
+- Code imports the single `settings` instance.
+- It accesses configuration values like attributes (e.g., `settings.database_url`, `settings.object_storage.minio.endpoint`).
+- For settings potentially stored in the database, it calls helper methods like `settings.get_from_db()`.
 
 **Internal Implementation: The Loading Sequence**
 
@@ -297,7 +295,7 @@ sequenceDiagram
 
 1.  **Initialization:** When the `settings` object is first created/accessed.
 2.  **File Load:** `load_settings_from_yaml` reads `config.yaml` (or the path specified by `BISHENG_CONFIG` env var).
-3.  **Environment Load:** The `Settings` class (using `pydantic-settings`) automatically looks for environment variables matching its fields (with the `BISHENG_` prefix). If found, these *override* the values loaded from the file. Custom validators (like the one for `database_url`) can add specific logic here.
+3.  **Environment Load:** The `Settings` class (using `pydantic-settings`) automatically looks for environment variables matching its fields (with the `BISHENG_` prefix). If found, these _override_ the values loaded from the file. Custom validators (like the one for `database_url`) can add specific logic here.
 4.  **Object Population:** The final values are stored in the attributes of the `settings` object instance.
 5.  **Dynamic DB Load (On Demand):** For specific keys managed dynamically (like default models), methods like `get_from_db` or `get_all_config` are called when needed. These query the `config` table in the database (which was likely initialized using `initdb_config.yaml`), parse the stored YAML, and return the relevant section.
 6.  **Access:** Any part of the application can now import the `settings` object and access the configuration values.
@@ -306,12 +304,12 @@ sequenceDiagram
 
 Configuration Management is fundamental and provides settings used by virtually all other components:
 
-*   [Database Models](09_database_models_.md): Uses `settings.database_url` to connect. The `Config` model itself is part of the database schema for storing dynamic settings.
-*   [LLM & Embedding Wrappers](08_llm___embedding_wrappers_.md): Reads API keys, model names, and server URLs from settings (often loaded via the `settings.get_from_db('default_llm')` pattern or specific model configs).
-*   [Backend API & Services](01_backend_api___services_.md): Needs database URL, potentially Redis URL (`settings.redis_url`), JWT secrets (`settings.jwt_secret`), etc.
-*   [RAG Pipeline](06_rag_pipeline_.md): Needs connection details for vector stores (`settings.vector_stores`) and object storage (`settings.object_storage`).
-*   [Workflow Engine](04_workflow_engine_.md): Reads default timeout and max steps from `settings.workflow_conf`.
-*   *Everything else*: Logging (`settings.logger_conf`), Celery workers (`settings.celery_redis_url`), authentication (`settings.password_conf`), etc., rely on the central `settings` object.
+- [Database Models](09_database_models_.md): Uses `settings.database_url` to connect. The `Config` model itself is part of the database schema for storing dynamic settings.
+- [LLM & Embedding Wrappers](08_llm___embedding_wrappers_.md): Reads API keys, model names, and server URLs from settings (often loaded via the `settings.get_from_db('default_llm')` pattern or specific model configs).
+- [Backend API & Services](01_backend_api___services_.md): Needs database URL, potentially Redis URL (`settings.redis_url`), JWT secrets (`settings.jwt_secret`), etc.
+- [RAG Pipeline](06_rag_pipeline_.md): Needs connection details for vector stores (`settings.vector_stores`) and object storage (`settings.object_storage`).
+- [Workflow Engine](04_workflow_engine_.md): Reads default timeout and max steps from `settings.workflow_conf`.
+- _Everything else_: Logging (`settings.logger_conf`), Celery workers (`settings.celery_redis_url`), authentication (`settings.password_conf`), etc., rely on the central `settings` object.
 
 **Conclusion**
 

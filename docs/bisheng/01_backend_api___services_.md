@@ -1,4 +1,3 @@
-
 ---
 layout: default
 title: "Backend API & Services"
@@ -16,16 +15,16 @@ In Bisheng, the **Backend API & Services** component acts like this central kitc
 
 **What Problem Does This Solve?**
 
-Think about using Bisheng: you build a visual workflow, add your documents to a knowledge base, and chat with an AI assistant. How does the user interface (what you click and see) actually *do* these things? It needs to talk to a powerful engine in the background.
+Think about using Bisheng: you build a visual workflow, add your documents to a knowledge base, and chat with an AI assistant. How does the user interface (what you click and see) actually _do_ these things? It needs to talk to a powerful engine in the background.
 
 The Backend API & Services provides the necessary "brainpower" and communication channels for the user interface (and potentially other applications) to:
 
-*   Create, save, and manage your workflows.
-*   Handle user logins and permissions.
-*   Manage your knowledge base documents.
-*   Deploy AI models.
-*   Actually *run* the workflows you build.
-*   Manage chat sessions.
+- Create, save, and manage your workflows.
+- Handle user logins and permissions.
+- Manage your knowledge base documents.
+- Deploy AI models.
+- Actually _run_ the workflows you build.
+- Manage chat sessions.
 
 Without a backend, the frontend would just be a pretty picture with no functionality. The backend is the engine that makes everything work.
 
@@ -44,10 +43,10 @@ Let's trace a common action: running a simple chat workflow you built.
 1.  **Input (Your Action):** You open a workflow in the Bisheng interface and click the "Chat" or "Run" button.
 2.  **Frontend Request:** Your web browser (the frontend) instantly sends a specific request over the internet to the Bisheng Backend API. This request might look something like: `POST /api/v1/chat/{flow_id}`. It includes the ID of the workflow you want to run and your chat message.
 3.  **Backend Processing:** The Backend API receives this request.
-    *   It first checks if you're allowed to run this workflow (authentication/authorization).
-    *   It finds the correct internal "Service" or function responsible for handling chat requests.
-    *   This service might load the workflow details from the [Database Models](09_database_models_.md).
-    *   It then uses the [Workflow Engine](04_workflow_engine_.md) to execute the steps defined in your workflow, potentially interacting with AI models via [LLM & Embedding Wrappers](08_llm___embedding_wrappers_.md).
+    - It first checks if you're allowed to run this workflow (authentication/authorization).
+    - It finds the correct internal "Service" or function responsible for handling chat requests.
+    - This service might load the workflow details from the [Database Models](09_database_models_.md).
+    - It then uses the [Workflow Engine](04_workflow_engine_.md) to execute the steps defined in your workflow, potentially interacting with AI models via [LLM & Embedding Wrappers](08_llm___embedding_wrappers_.md).
 4.  **Backend Response:** Once the workflow finishes processing your message and gets a response (e.g., from an AI model), the backend packages this result.
 5.  **Output (What You See):** The backend sends the result back to your browser (frontend) as an API response. The frontend then displays the chat message from the AI assistant on your screen.
 
@@ -57,7 +56,7 @@ This request-response cycle happens every time you interact with Bisheng in a me
 
 You don't need to understand every line, but let's peek at where the magic starts.
 
-*   **`src/backend/bisheng/main.py`**: This is the main entry point for the backend server.
+- **`src/backend/bisheng/main.py`**: This is the main entry point for the backend server.
 
 ```python
 # src/backend/bisheng/main.py (Simplified)
@@ -89,7 +88,7 @@ app = create_app() # Create the app instance
 
 This code sets up the FastAPI application (`app`), initializes the necessary background `Services` when the server starts (`initialize_services`), and tells the app where to find all the different API endpoints (commands) using `app.include_router(router)`.
 
-*   **`src/backend/bisheng/api/router.py`**: This file acts like an index for our API "menu", organizing different types of requests.
+- **`src/backend/bisheng/api/router.py`**: This file acts like an index for our API "menu", organizing different types of requests.
 
 ```python
 # src/backend/bisheng/api/router.py (Simplified)
@@ -160,26 +159,27 @@ sequenceDiagram
             logger.info(f'Request finished: {response.status_code}')
             return response
     ```
+
     This middleware simply logs information about incoming requests.
 
 4.  **Routing:** FastAPI uses the included routers (`router.py`, `v1/__init__.py`) to match the URL path (`/api/v1/flows/run/{flow_id}`) to the specific Python function designed to handle it (e.g., a function within `src/backend/bisheng/api/v1/flows.py`).
 5.  **Handling:** The matched function (the "handler") executes. This is where the main logic lives. It might:
-    *   Parse incoming data (like the chat message).
-    *   Validate permissions (using helpers from `api/utils.py`).
-    *   Interact with internal **Services**. Services are managed by a `ServiceManager` (`services/manager.py`) and accessed via dependency injection (`services/deps.py`), ensuring they are properly initialized and available. For running a flow, it would call the [Workflow Engine](04_workflow_engine_.md). For saving data, it might interact with [Database Models](09_database_models_.md).
+    - Parse incoming data (like the chat message).
+    - Validate permissions (using helpers from `api/utils.py`).
+    - Interact with internal **Services**. Services are managed by a `ServiceManager` (`services/manager.py`) and accessed via dependency injection (`services/deps.py`), ensuring they are properly initialized and available. For running a flow, it would call the [Workflow Engine](04_workflow_engine_.md). For saving data, it might interact with [Database Models](09_database_models_.md).
 6.  **Response:** The handler function generates a result, which FastAPI packages into an HTTP response and sends back to the Frontend.
 
 **Connecting to Other Parts**
 
 The Backend API & Services layer is the central hub. It connects to almost every other major part of Bisheng:
 
-*   It receives requests triggered by your actions in the **Frontend** (not covered in these chapters, but it's the visual interface).
-*   For real-time communication like chat, it uses [WebSocket & Chat Management](02_websocket___chat_management_.md).
-*   It orchestrates the execution of complex tasks using the [Workflow Engine](04_workflow_engine_.md) and [Graph Engine](05_graph_engine_.md).
-*   It manages data storage and retrieval through [Database Models](09_database_models_.md).
-*   It configures and uses AI models via [LLM & Embedding Wrappers](08_llm___embedding_wrappers_.md).
-*   It uses underlying abstractions like the [Interface Layer](07_interface_layer_.md) to standardize interactions.
-*   Its setup and behavior are controlled by [Configuration Management](10_configuration_management_.md).
+- It receives requests triggered by your actions in the **Frontend** (not covered in these chapters, but it's the visual interface).
+- For real-time communication like chat, it uses [WebSocket & Chat Management](02_websocket___chat_management_.md).
+- It orchestrates the execution of complex tasks using the [Workflow Engine](04_workflow_engine_.md) and [Graph Engine](05_graph_engine_.md).
+- It manages data storage and retrieval through [Database Models](09_database_models_.md).
+- It configures and uses AI models via [LLM & Embedding Wrappers](08_llm___embedding_wrappers_.md).
+- It uses underlying abstractions like the [Interface Layer](07_interface_layer_.md) to standardize interactions.
+- Its setup and behavior are controlled by [Configuration Management](10_configuration_management_.md).
 
 **Conclusion**
 

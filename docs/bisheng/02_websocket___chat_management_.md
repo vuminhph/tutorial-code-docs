@@ -1,4 +1,3 @@
-
 ---
 layout: default
 title: "WebSocket & Chat Management"
@@ -8,7 +7,7 @@ nav_order: 2
 
 # Chapter 2: WebSocket & Chat Management
 
-Welcome back! In [Chapter 1: Backend API & Services](01_backend_api___services_.md), we learned how the Bisheng backend acts like a restaurant kitchen, handling requests from the frontend using APIs. But what about conversations that need to happen *right now*, like a live chat? Sending a new request for every single message back and forth would be like sending a separate letter for each sentence in a conversation – very slow!
+Welcome back! In [Chapter 1: Backend API & Services](01_backend_api___services_.md), we learned how the Bisheng backend acts like a restaurant kitchen, handling requests from the frontend using APIs. But what about conversations that need to happen _right now_, like a live chat? Sending a new request for every single message back and forth would be like sending a separate letter for each sentence in a conversation – very slow!
 
 Imagine you're talking to the restaurant manager through an intercom system instead of waiting for the waiter to relay messages. This intercom allows instant, continuous, two-way communication. That's what **WebSocket & Chat Management** provides for Bisheng.
 
@@ -32,11 +31,11 @@ Think of it as the restaurant's dedicated intercom system connected to every tab
 1.  **WebSocket:** This is the technology that enables the "intercom". Unlike standard HTTP requests which are like sending a letter (request) and waiting for a reply letter (response), a WebSocket connection is like opening a phone line or intercom channel. Once opened, both the frontend and backend can send messages to each other at any time without needing to establish a new connection for each message. This is perfect for real-time applications like chat.
 
 2.  **Chat Management:** This is the "operator" managing the intercom system. It's not just about the connection itself. It involves:
-    *   **Connection Handling:** Accepting new WebSocket connections when a user starts a chat and cleaning up when they leave.
-    *   **Message Routing:** Receiving messages from the frontend via WebSocket and figuring out which backend logic (e.g., which specific AI Assistant or [Workflow Engine](04_workflow_engine_.md) run) should handle it.
-    *   **Session Management:** Keeping track of different ongoing chat sessions (e.g., you might be chatting with two different assistants in two different browser tabs).
-    *   **History Management:** Often works with [Database Models](09_database_models_.md) to save and retrieve conversation history.
-    *   **Response Streaming:** Receiving responses (often generated piece by piece by an AI) and sending them back over the WebSocket in chunks, creating that "typing" effect.
+    - **Connection Handling:** Accepting new WebSocket connections when a user starts a chat and cleaning up when they leave.
+    - **Message Routing:** Receiving messages from the frontend via WebSocket and figuring out which backend logic (e.g., which specific AI Assistant or [Workflow Engine](04_workflow_engine_.md) run) should handle it.
+    - **Session Management:** Keeping track of different ongoing chat sessions (e.g., you might be chatting with two different assistants in two different browser tabs).
+    - **History Management:** Often works with [Database Models](09_database_models_.md) to save and retrieve conversation history.
+    - **Response Streaming:** Receiving responses (often generated piece by piece by an AI) and sending them back over the WebSocket in chunks, creating that "typing" effect.
 
 **How It Works: A Chat Message Journey**
 
@@ -47,11 +46,11 @@ Let's trace what happens when you send a message in a Bisheng chat:
 3.  **Frontend Sends:** The frontend instantly sends your message ("Hello, Bisheng!") over the established WebSocket connection.
 4.  **Backend Receives:** The `ChatManager` on the backend receives the message through the specific WebSocket connection tied to your chat session.
 5.  **Routing & Processing:** The `ChatManager` identifies which `ChatClient` object represents your connection. This client object then determines the appropriate logic to handle the message. For an AI assistant chat, it might involve:
-    *   Retrieving chat history ([Database Models](09_database_models_.md)).
-    *   Calling the specific [GPTS / Assistant Abstraction](03_gpts___assistant_abstraction_.md).
-    *   The Assistant might use an [LLM & Embedding Wrappers](08_llm___embedding_wrappers_.md) to generate a response.
+    - Retrieving chat history ([Database Models](09_database_models_.md)).
+    - Calling the specific [GPTS / Assistant Abstraction](03_gpts___assistant_abstraction_.md).
+    - The Assistant might use an [LLM & Embedding Wrappers](08_llm___embedding_wrappers_.md) to generate a response.
 6.  **Streaming Response:** The AI starts generating a response, perhaps "Hello there! How can I help you today?". Instead of waiting for the full response, the backend `ChatClient` receives it in pieces (e.g., "Hello", " there!", " How", " can", ...).
-7.  **Backend Sends:** As each piece arrives, the `ChatClient` immediately sends it back to the frontend over the *same* WebSocket connection.
+7.  **Backend Sends:** As each piece arrives, the `ChatClient` immediately sends it back to the frontend over the _same_ WebSocket connection.
 8.  **Frontend Displays:** The frontend receives these pieces and displays them progressively, making it look like the AI is typing.
 
 **Looking at the Code (Simplified)**
@@ -93,9 +92,9 @@ async def chat(
 
 ```
 
-*   `@router.websocket('/chat/{flow_id}')`: This decorator tells FastAPI that this function handles WebSocket connections at the specified URL path.
-*   `websocket: WebSocket`: FastAPI provides the connected WebSocket object.
-*   `chat_manager.handle_websocket(...)`: This is where we pass the connection details to our central `ChatManager` to handle the rest of the communication lifecycle for this specific chat.
+- `@router.websocket('/chat/{flow_id}')`: This decorator tells FastAPI that this function handles WebSocket connections at the specified URL path.
+- `websocket: WebSocket`: FastAPI provides the connected WebSocket object.
+- `chat_manager.handle_websocket(...)`: This is where we pass the connection details to our central `ChatManager` to handle the rest of the communication lifecycle for this specific chat.
 
 **2. Managing Connections (`manager.py`)**
 
@@ -157,10 +156,10 @@ class ChatManager:
     # ... methods to send messages, handle history etc. ...
 ```
 
-*   `active_connections` / `active_clients`: Dictionaries to keep track of who is currently connected.
-*   `accept_client`: Handles the initial handshake and stores the connection.
-*   `clear_client`: Removes the connection when the user closes the chat or navigates away.
-*   `dispatch_client`: This is called by the endpoint. It creates a specific client handler (`ChatClient`, `WorkflowClient`) based on the type of chat, accepts the connection, and then enters a loop listening for incoming messages using `websocket.receive_json()`. When a message arrives, it calls `chat_client.handle_message()`.
+- `active_connections` / `active_clients`: Dictionaries to keep track of who is currently connected.
+- `accept_client`: Handles the initial handshake and stores the connection.
+- `clear_client`: Removes the connection when the user closes the chat or navigates away.
+- `dispatch_client`: This is called by the endpoint. It creates a specific client handler (`ChatClient`, `WorkflowClient`) based on the type of chat, accepts the connection, and then enters a loop listening for incoming messages using `websocket.receive_json()`. When a message arrives, it calls `chat_client.handle_message()`.
 
 **3. Handling a Single Chat Connection (`client.py`)**
 
@@ -228,10 +227,10 @@ class ChatClient: # Simplified example for a GPTS chat
     # ... Callback handler (`AsyncGptsDebugCallbackHandler`) would use `send_json` to stream partial responses ...
 ```
 
-*   `__init__`: Stores the WebSocket connection and initializes things like the agent or streaming queue.
-*   `send_json`: A helper to send structured messages back to the frontend.
-*   `handle_message`: Receives the raw message dictionary and typically delegates the heavy processing (`_process_gpts_message`) to a background task/thread to keep the WebSocket responsive.
-*   `_process_gpts_message`: This is where the core chat logic happens: initialize the agent, save messages, get history, run the agent, save the response. Crucially, when `self.gpts_agent.run` is called, it uses a *callback handler* (`self.gpts_async_callback`, often defined in `api/v1/callback.py`). This callback is responsible for receiving streamed chunks from the AI model and using `send_json` to immediately forward them to the frontend via the WebSocket.
+- `__init__`: Stores the WebSocket connection and initializes things like the agent or streaming queue.
+- `send_json`: A helper to send structured messages back to the frontend.
+- `handle_message`: Receives the raw message dictionary and typically delegates the heavy processing (`_process_gpts_message`) to a background task/thread to keep the WebSocket responsive.
+- `_process_gpts_message`: This is where the core chat logic happens: initialize the agent, save messages, get history, run the agent, save the response. Crucially, when `self.gpts_agent.run` is called, it uses a _callback handler_ (`self.gpts_async_callback`, often defined in `api/v1/callback.py`). This callback is responsible for receiving streamed chunks from the AI model and using `send_json` to immediately forward them to the frontend via the WebSocket.
 
 **Internal Implementation: The Intercom System**
 
@@ -279,9 +278,9 @@ sequenceDiagram
 6.  **Receive:** Frontend sends a message.
 7.  **Handle:** The loop receives the message and calls `chat_client.handle_message()`.
 8.  **Process:** `handle_message` typically starts a background task (`_process_gpts_message` or similar) which:
-    *   Initializes necessary components (like the `AssistantAgent`).
-    *   Calls the processing logic (e.g., `gpts_agent.run`).
-    *   Provides a **callback handler** to the processing logic.
+    - Initializes necessary components (like the `AssistantAgent`).
+    - Calls the processing logic (e.g., `gpts_agent.run`).
+    - Provides a **callback handler** to the processing logic.
 9.  **Stream:** As the processing logic generates response chunks, it calls the callback handler.
 10. **Send:** The callback handler immediately uses `chat_client.send_json()` to send the chunk back over the WebSocket to the frontend.
 11. **Complete:** Once processing is fully done, the background task might send a final confirmation message.
@@ -291,18 +290,18 @@ sequenceDiagram
 
 WebSocket & Chat Management is the real-time communication backbone, connecting:
 
-*   The **Frontend User Interface** (providing the chat window).
-*   [Backend API & Services](01_backend_api___services_.md): While WebSockets handle the chat stream, initial setup or related actions might still use standard APIs.
-*   [GPTS / Assistant Abstraction](03_gpts___assistant_abstraction_.md): Routes chat messages to the correct assistant for processing.
-*   [Workflow Engine](04_workflow_engine_.md): Can interact with workflows that involve chat steps or user input via WebSocket communication (`WorkflowClient`).
-*   [LLM & Embedding Wrappers](08_llm___embedding_wrappers_.md): Used by the Assistant/Workflow to generate responses that are then streamed back.
-*   [Database Models](09_database_models_.md): Used by the `ChatClient` or `ChatHistory` to store and retrieve conversation logs.
+- The **Frontend User Interface** (providing the chat window).
+- [Backend API & Services](01_backend_api___services_.md): While WebSockets handle the chat stream, initial setup or related actions might still use standard APIs.
+- [GPTS / Assistant Abstraction](03_gpts___assistant_abstraction_.md): Routes chat messages to the correct assistant for processing.
+- [Workflow Engine](04_workflow_engine_.md): Can interact with workflows that involve chat steps or user input via WebSocket communication (`WorkflowClient`).
+- [LLM & Embedding Wrappers](08_llm___embedding_wrappers_.md): Used by the Assistant/Workflow to generate responses that are then streamed back.
+- [Database Models](09_database_models_.md): Used by the `ChatClient` or `ChatHistory` to store and retrieve conversation logs.
 
 **Conclusion**
 
 You've now learned how Bisheng handles real-time conversations using the "intercom" system of WebSockets. We saw how the `ChatManager` acts as the central operator, managing connections, while individual `ChatClient` instances handle the message flow for each user, routing messages for processing and streaming responses back instantly. This provides the smooth, interactive chat experience users expect.
 
-But how does the system know *which* assistant to talk to, and how does that assistant actually work? In the next chapter, we'll explore the abstraction that represents these AI assistants.
+But how does the system know _which_ assistant to talk to, and how does that assistant actually work? In the next chapter, we'll explore the abstraction that represents these AI assistants.
 
 Ready to meet the assistants? Let's move on to [Chapter 3: GPTS / Assistant Abstraction](03_gpts___assistant_abstraction_.md).
 

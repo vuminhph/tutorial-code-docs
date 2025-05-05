@@ -1,4 +1,3 @@
-
 ---
 layout: default
 title: "Graph Engine"
@@ -10,11 +9,12 @@ nav_order: 5
 
 Welcome back! In [Chapter 4: Workflow Engine](04_workflow_engine_.md), we learned how Bisheng uses a Workflow Engine to let you visually design complex processes, like creating an "assembly line" blueprint with different stations (nodes) connected by conveyor belts (edges). We saw how you could define a "Topic Summarizer" workflow.
 
-But who actually reads that blueprint and makes the assembly line *run*? Who ensures each station operates in the correct order and that the product (data) moves correctly between them? That's the job of the **Graph Engine**.
+But who actually reads that blueprint and makes the assembly line _run_? Who ensures each station operates in the correct order and that the product (data) moves correctly between them? That's the job of the **Graph Engine**.
 
 **What Problem Does This Solve?**
 
 Imagine you have your assembly line blueprint (the workflow definition). It specifies:
+
 1.  Get a topic (Input Station).
 2.  Brainstorm points (LLM Station 1).
 3.  Search the web (Tool Station).
@@ -23,12 +23,12 @@ Imagine you have your assembly line blueprint (the workflow definition). It spec
 
 The blueprint also shows the connections: Input -> LLM1 -> Tool -> LLM2 -> Output.
 
-Now, how does the system *actually* execute this? It needs an engine that can:
+Now, how does the system _actually_ execute this? It needs an engine that can:
 
-*   Understand the blueprint (nodes and edges).
-*   Figure out the correct sequence (Input *before* LLM1, LLM1 *before* Tool, etc.). This is crucial because some stations need the output from previous ones.
-*   Trigger each station (node) to perform its task at the right time.
-*   Manage the overall flow of data.
+- Understand the blueprint (nodes and edges).
+- Figure out the correct sequence (Input _before_ LLM1, LLM1 _before_ Tool, etc.). This is crucial because some stations need the output from previous ones.
+- Trigger each station (node) to perform its task at the right time.
+- Manage the overall flow of data.
 
 The **Graph Engine** is the core component responsible for these tasks. It takes the workflow definition and turns it into a live, running process. Think of it as the central control system for the assembly line, ensuring everything happens efficiently and in the right order.
 
@@ -43,20 +43,20 @@ Let's use a cooking analogy. You have a recipe (the workflow definition):
 
 The **Graph Engine** is like the chef actually following the recipe:
 
-*   It reads the steps (nodes) and dependencies (edges - "needs chopped onions").
-*   It figures out the order: A -> B -> C -> D (this is called **Topological Sorting**).
-*   It executes each step in that order: first chopping, then browning, then adding spices, then simmering.
-*   It makes sure the output of one step (chopped onions) is ready for the next step that needs it.
+- It reads the steps (nodes) and dependencies (edges - "needs chopped onions").
+- It figures out the order: A -> B -> C -> D (this is called **Topological Sorting**).
+- It executes each step in that order: first chopping, then browning, then adding spices, then simmering.
+- It makes sure the output of one step (chopped onions) is ready for the next step that needs it.
 
 **Key Concepts**
 
 1.  **Graph Representation:** The engine internally represents the workflow as a mathematical graph. Nodes become "vertices," and edges remain "edges" connecting these vertices. This structure makes it easy to analyze dependencies.
-2.  **Topological Sort:** This is a fancy term for figuring out the correct execution order. If Node B needs data from Node A, the engine knows it *must* run Node A before Node B. It sorts all the nodes into a valid sequence based on these dependencies. If there's a loop (e.g., Node A needs Node B, and Node B needs Node A), it can detect this problem.
+2.  **Topological Sort:** This is a fancy term for figuring out the correct execution order. If Node B needs data from Node A, the engine knows it _must_ run Node A before Node B. It sorts all the nodes into a valid sequence based on these dependencies. If there's a loop (e.g., Node A needs Node B, and Node B needs Node A), it can detect this problem.
 3.  **Node Building/Execution:** Once the order is determined, the engine iterates through the sorted nodes. For each node, it "builds" or "runs" it. This involves:
-    *   Gathering the necessary input data (often from the `GraphState` managed by the [Workflow Engine](04_workflow_engine_.md)).
-    *   Creating the specific component instance (like an LLM object or a Tool object).
-    *   Executing the node's core logic (calling the LLM, running the tool, executing code).
-    *   Storing the output back into the `GraphState` for downstream nodes.
+    - Gathering the necessary input data (often from the `GraphState` managed by the [Workflow Engine](04_workflow_engine_.md)).
+    - Creating the specific component instance (like an LLM object or a Tool object).
+    - Executing the node's core logic (calling the LLM, running the tool, executing code).
+    - Storing the output back into the `GraphState` for downstream nodes.
 4.  **Parameter Handling:** The engine ensures that when a node is built, it receives the correct configuration parameters and data inputs defined in the workflow.
 
 **How It Works: Running the "Topic Summarizer"**
@@ -65,15 +65,15 @@ Let's see how the Graph Engine runs the Topic Summarizer workflow defined in Cha
 
 1.  **Input:** The [Workflow Engine](04_workflow_engine_.md) gives the Graph Engine the workflow definition (the JSON-like structure with nodes and edges).
 2.  **Parsing:** The Graph Engine reads this definition and creates an internal graph structure using `Vertex` objects for nodes and `Edge` objects for connections.
-    *   It creates `Vertex` instances for Input, LLM1, Tool, LLM2, and Output nodes.
-    *   It creates `Edge` instances representing the flow: Input -> LLM1, LLM1 -> Tool, etc.
+    - It creates `Vertex` instances for Input, LLM1, Tool, LLM2, and Output nodes.
+    - It creates `Edge` instances representing the flow: Input -> LLM1, LLM1 -> Tool, etc.
 3.  **Topological Sort:** The engine analyzes the graph and determines the execution order: `[Input, LLM1, Tool, LLM2, Output]` (ignoring Start/End for simplicity).
 4.  **Execution Loop:** The engine starts processing the nodes in the sorted order:
-    *   **Run `Input` Node:** Executes the `Input` vertex. It might pause and wait for user input (as coordinated by the [Workflow Engine](04_workflow_engine_.md)). The topic provided by the user is stored.
-    *   **Run `LLM1` Node:** Executes the `LLM1` vertex. It fetches the topic (from the shared state), calls the LLM to brainstorm points, and stores the points.
-    *   **Run `Tool` Node:** Executes the `Tool` vertex. It fetches the brainstormed points, performs the web search, and stores the results.
-    *   **Run `LLM2` Node:** Executes the `LLM2` vertex. It fetches the points and search results, calls the LLM to summarize, and stores the summary.
-    *   **Run `Output` Node:** Executes the `Output` vertex. It fetches the final summary and displays it to the user (again, coordinated by the [Workflow Engine](04_workflow_engine_.md)).
+    - **Run `Input` Node:** Executes the `Input` vertex. It might pause and wait for user input (as coordinated by the [Workflow Engine](04_workflow_engine_.md)). The topic provided by the user is stored.
+    - **Run `LLM1` Node:** Executes the `LLM1` vertex. It fetches the topic (from the shared state), calls the LLM to brainstorm points, and stores the points.
+    - **Run `Tool` Node:** Executes the `Tool` vertex. It fetches the brainstormed points, performs the web search, and stores the results.
+    - **Run `LLM2` Node:** Executes the `LLM2` vertex. It fetches the points and search results, calls the LLM to summarize, and stores the summary.
+    - **Run `Output` Node:** Executes the `Output` vertex. It fetches the final summary and displays it to the user (again, coordinated by the [Workflow Engine](04_workflow_engine_.md)).
 5.  **Output:** The workflow completes, having followed the defined steps in the correct order.
 
 **Looking at the Code (Simplified Concepts)**
@@ -167,10 +167,10 @@ class Graph:
 
 ```
 
-*   `__init__` / `from_payload`: Takes the raw node and edge data.
-*   `_build_graph`: Orchestrates the creation of internal `Vertex` and `Edge` objects.
-*   `_build_vertices` / `_build_edges`: Creates the actual vertex and edge instances. `_get_vertex_class` figures out *which* type of `Vertex` to create.
-*   `topological_sort`: This is the crucial method that calculates the correct order to run the nodes.
+- `__init__` / `from_payload`: Takes the raw node and edge data.
+- `_build_graph`: Orchestrates the creation of internal `Vertex` and `Edge` objects.
+- `_build_vertices` / `_build_edges`: Creates the actual vertex and edge instances. `_get_vertex_class` figures out _which_ type of `Vertex` to create.
+- `topological_sort`: This is the crucial method that calculates the correct order to run the nodes.
 
 **2. The `Vertex` Class (The Station/Recipe Step Executor)**
 
@@ -239,14 +239,14 @@ class Vertex:
     # ... (other helper methods) ...
 ```
 
-*   `__init__`: Stores node data and a reference to the `Graph`.
-*   `_build_params`: Figures out what inputs this node needs from its configuration and incoming edges.
-*   `build`: The main method called by the engine to execute this node. It triggers the internal `_build`.
-*   `_build`: The core logic:
-    *   Recursively ensures all input nodes (`Vertex` instances found in `self.params`) are built first (`_build_each_node_in_params_dict`).
-    *   Instantiates and runs the actual component logic (e.g., calls LangChain, runs Python code) via `loading.instantiate_class`.
-    *   Stores the result in `self._built_object`.
-*   `_validate_built_object`: Simple check to ensure the build produced a valid result.
+- `__init__`: Stores node data and a reference to the `Graph`.
+- `_build_params`: Figures out what inputs this node needs from its configuration and incoming edges.
+- `build`: The main method called by the engine to execute this node. It triggers the internal `_build`.
+- `_build`: The core logic:
+  - Recursively ensures all input nodes (`Vertex` instances found in `self.params`) are built first (`_build_each_node_in_params_dict`).
+  - Instantiates and runs the actual component logic (e.g., calls LangChain, runs Python code) via `loading.instantiate_class`.
+  - Stores the result in `self._built_object`.
+- `_validate_built_object`: Simple check to ensure the build produced a valid result.
 
 **3. Conceptual Execution Flow**
 
@@ -356,11 +356,11 @@ This diagram shows how the `Graph` object parses the definition, and an underlyi
 
 The Graph Engine is the heart of workflow execution:
 
-*   It's used by the [Workflow Engine](04_workflow_engine_.md) to run the workflows defined visually or programmatically.
-*   It relies on the `Vertex` and `Edge` representations defined in `bisheng.graph.vertex` and `bisheng.graph.edge`.
-*   It orchestrates the building and running of components from various interface layers (like [LLM & Embedding Wrappers](08_llm___embedding_wrappers_.md)).
-*   The process it executes reads and writes data using the `GraphState` concept from the [Workflow Engine](04_workflow_engine_.md).
-*   It takes the workflow structure, often loaded via [Backend API & Services](01_backend_api___services_.md) and stored using [Database Models](09_database_models_.md).
+- It's used by the [Workflow Engine](04_workflow_engine_.md) to run the workflows defined visually or programmatically.
+- It relies on the `Vertex` and `Edge` representations defined in `bisheng.graph.vertex` and `bisheng.graph.edge`.
+- It orchestrates the building and running of components from various interface layers (like [LLM & Embedding Wrappers](08_llm___embedding_wrappers_.md)).
+- The process it executes reads and writes data using the `GraphState` concept from the [Workflow Engine](04_workflow_engine_.md).
+- It takes the workflow structure, often loaded via [Backend API & Services](01_backend_api___services_.md) and stored using [Database Models](09_database_models_.md).
 
 **Conclusion**
 

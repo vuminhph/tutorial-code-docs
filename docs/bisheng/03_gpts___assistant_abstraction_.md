@@ -1,4 +1,3 @@
-
 ---
 layout: default
 title: "GPTS / Assistant Abstraction"
@@ -8,7 +7,7 @@ nav_order: 3
 
 # Chapter 3: GPTS / Assistant Abstraction
 
-Welcome back! In [Chapter 2: WebSocket & Chat Management](02_websocket___chat_management_.md), we saw how Bisheng handles the real-time "phone lines" (WebSockets) for chat conversations. We learned how messages travel back and forth instantly. Now, let's ask: who or what is actually *talking* on the other end of that line? How do we create different AI personalities with specific skills?
+Welcome back! In [Chapter 2: WebSocket & Chat Management](02_websocket___chat_management_.md), we saw how Bisheng handles the real-time "phone lines" (WebSockets) for chat conversations. We learned how messages travel back and forth instantly. Now, let's ask: who or what is actually _talking_ on the other end of that line? How do we create different AI personalities with specific skills?
 
 This chapter introduces the **GPTS / Assistant Abstraction**. Think of it as Bisheng's way of letting you easily build and manage your own custom AI assistants, much like assembling specialized robots.
 
@@ -22,34 +21,35 @@ Imagine you want to create several different AI helpers:
 
 Each of these needs a different personality, different tools, and maybe access to different information. Writing the complex code to handle the AI logic, tool usage, and conversation flow for each one from scratch would be difficult and repetitive.
 
-The **GPTS / Assistant Abstraction** solves this by providing a higher-level, configuration-based way to define an assistant. You specify *what* the assistant should be like and *what* it can do, and Bisheng handles the underlying complexity of making it work.
+The **GPTS / Assistant Abstraction** solves this by providing a higher-level, configuration-based way to define an assistant. You specify _what_ the assistant should be like and _what_ it can do, and Bisheng handles the underlying complexity of making it work.
 
 **Analogy: Building a Robot Chef**
 
 Think of building a specialized robot chef:
 
-*   **Personality & Style (Prompt):** You define its cooking style (e.g., Italian cuisine specialist), its way of talking ("Chef's kiss!" or formal instructions), and its main goals (e.g., "Focus on healthy, quick meals").
-*   **Utensils & Appliances (Tools):** You give it specific tools like a whisk (calculator), an oven (search engine), or maybe a custom pasta maker (a specific API).
-*   **Recipe Books (Knowledge Bases):** You can grant it access to specific recipe books (your company's internal documents, specific websites).
-*   **Cooking AI (Underlying LLM):** You choose the core "brain" that determines how well it improvises and follows instructions.
+- **Personality & Style (Prompt):** You define its cooking style (e.g., Italian cuisine specialist), its way of talking ("Chef's kiss!" or formal instructions), and its main goals (e.g., "Focus on healthy, quick meals").
+- **Utensils & Appliances (Tools):** You give it specific tools like a whisk (calculator), an oven (search engine), or maybe a custom pasta maker (a specific API).
+- **Recipe Books (Knowledge Bases):** You can grant it access to specific recipe books (your company's internal documents, specific websites).
+- **Cooking AI (Underlying LLM):** You choose the core "brain" that determines how well it improvises and follows instructions.
 
 The GPTS/Assistant Abstraction lets you define all these aspects for your AI assistant without needing to be an expert robot engineer.
 
 **Key Concepts**
 
 1.  **Assistant Configuration:** This is the "blueprint" or "recipe" for your AI assistant. It typically includes:
-    *   **Prompt:** A detailed instruction telling the AI *who* it is, *what* its goal is, *how* it should behave, and any constraints. This is the most crucial part for defining personality and task focus.
-    *   **Tools:** A selection of capabilities the assistant can use. These aren't just passive information sources; they are *actions* the AI can decide to take. Examples include:
-        *   `Calculator`: For math problems.
-        *   `Bing Search`: To find current information online.
-        *   `Code Interpreter`: To run Python code in a sandbox.
-        *   `Dall-E`: To generate images.
-        *   *Custom Tools:* You can integrate your own APIs (like a stock checker or internal database query tool).
-        *   *Knowledge Base Tool:* A special tool that lets the assistant search through documents you've provided (more on this in [Chapter 6: RAG Pipeline](06_rag_pipeline_.md)).
-    *   **LLM Selection:** Choosing the underlying Large Language Model (like GPT-4, Claude, etc.) that will power the assistant's reasoning and language generation. Different LLMs have different strengths ([Chapter 8: LLM & Embedding Wrappers](08_llm___embedding_wrappers_.md)).
-    *   **Other Settings:** Things like `temperature` (controlling randomness) or `max_tokens` (limiting response length).
 
-2.  **Abstraction:** This concept hides the complex inner workings. You interact with a relatively simple configuration interface (either through the UI or code/config files), and Bisheng translates that into the necessary setup of prompts, tool integrations, and LLM calls. You don't need to manually manage the logic for deciding *when* to use a tool or *how* to format the tool's output for the LLM.
+    - **Prompt:** A detailed instruction telling the AI _who_ it is, _what_ its goal is, _how_ it should behave, and any constraints. This is the most crucial part for defining personality and task focus.
+    - **Tools:** A selection of capabilities the assistant can use. These aren't just passive information sources; they are _actions_ the AI can decide to take. Examples include:
+      - `Calculator`: For math problems.
+      - `Bing Search`: To find current information online.
+      - `Code Interpreter`: To run Python code in a sandbox.
+      - `Dall-E`: To generate images.
+      - _Custom Tools:_ You can integrate your own APIs (like a stock checker or internal database query tool).
+      - _Knowledge Base Tool:_ A special tool that lets the assistant search through documents you've provided (more on this in [Chapter 6: RAG Pipeline](06_rag_pipeline_.md)).
+    - **LLM Selection:** Choosing the underlying Large Language Model (like GPT-4, Claude, etc.) that will power the assistant's reasoning and language generation. Different LLMs have different strengths ([Chapter 8: LLM & Embedding Wrappers](08_llm___embedding_wrappers_.md)).
+    - **Other Settings:** Things like `temperature` (controlling randomness) or `max_tokens` (limiting response length).
+
+2.  **Abstraction:** This concept hides the complex inner workings. You interact with a relatively simple configuration interface (either through the UI or code/config files), and Bisheng translates that into the necessary setup of prompts, tool integrations, and LLM calls. You don't need to manually manage the logic for deciding _when_ to use a tool or _how_ to format the tool's output for the LLM.
 
 **How It Works: Configuring Our "Finance Helper"**
 
@@ -67,9 +67,9 @@ Let's imagine creating that "Finance Helper" assistant using Bisheng's interface
     Be polite and informative. Cite sources if using search.
     ```
 3.  **Tool Selection:** From a list of available tools, check the boxes for:
-    *   `Calculator`
-    *   `Bing Search`
-    *   `Stock Price API` (assuming this custom tool was added)
+    - `Calculator`
+    - `Bing Search`
+    - `Stock Price API` (assuming this custom tool was added)
 4.  **LLM Selection:** Choose an appropriate LLM, maybe "gpt-4-turbo".
 5.  **Save:** Save the configuration.
 
@@ -103,8 +103,8 @@ class AssistantLinkModel:
     # ... another entry for Stock Price API tool (tool_id=3) ...
 ```
 
-*   `AssistantModel`: Stores the core details like the prompt and chosen LLM.
-*   `AssistantLinkModel`: Connects the assistant to its tools (or potentially knowledge bases/flows). Each link represents one tool the assistant can use.
+- `AssistantModel`: Stores the core details like the prompt and chosen LLM.
+- `AssistantLinkModel`: Connects the assistant to its tools (or potentially knowledge bases/flows). Each link represents one tool the assistant can use.
 
 **2. Loading and Running the Assistant (Conceptual Code)**
 
@@ -153,15 +153,15 @@ final_answer = response_messages[-1].content
 print(final_answer) # Output: (Example) AAPL is currently trading at $XXX.XX.
 ```
 
-*   **Loading:** The code fetches the assistant's saved configuration and linked tool IDs from the database ([Database Models](09_database_models_.md)).
-*   **Tool Loading:** It uses a function (like `init_tools_by_toolid` which relies on `load_tools` from `src/bisheng-langchain/bisheng_langchain/gpts/load_tools.py`) to get the actual executable tool objects based on the IDs.
-*   **LLM Loading:** It gets the appropriate LLM instance ([Chapter 8: LLM & Embedding Wrappers](08_llm___embedding_wrappers_.md)).
-*   **Agent Creation:** It creates the `ConfigurableAssistant` (defined in `src/bisheng-langchain/bisheng_langchain/gpts/assistant.py`), providing the prompt, the loaded tools, and the LLM. It also specifies the *type* of agent logic to use (like function calling or ReAct, found in `src/bisheng-langchain/bisheng_langchain/gpts/agent_types/`).
-*   **Running:** When a message comes in, the `agent.run()` (or `ainvoke`, `astream`) method is called. This method orchestrates the conversation turn, potentially calling the LLM multiple times and invoking tools as needed, based on the chosen `agent_executor_type`.
+- **Loading:** The code fetches the assistant's saved configuration and linked tool IDs from the database ([Database Models](09_database_models_.md)).
+- **Tool Loading:** It uses a function (like `init_tools_by_toolid` which relies on `load_tools` from `src/bisheng-langchain/bisheng_langchain/gpts/load_tools.py`) to get the actual executable tool objects based on the IDs.
+- **LLM Loading:** It gets the appropriate LLM instance ([Chapter 8: LLM & Embedding Wrappers](08_llm___embedding_wrappers_.md)).
+- **Agent Creation:** It creates the `ConfigurableAssistant` (defined in `src/bisheng-langchain/bisheng_langchain/gpts/assistant.py`), providing the prompt, the loaded tools, and the LLM. It also specifies the _type_ of agent logic to use (like function calling or ReAct, found in `src/bisheng-langchain/bisheng_langchain/gpts/agent_types/`).
+- **Running:** When a message comes in, the `agent.run()` (or `ainvoke`, `astream`) method is called. This method orchestrates the conversation turn, potentially calling the LLM multiple times and invoking tools as needed, based on the chosen `agent_executor_type`.
 
 **Internal Implementation: A Chat Turn with the Finance Helper**
 
-Let's trace what happens *inside* Bisheng when you ask the Finance Helper, "What is 5% of $1000?":
+Let's trace what happens _inside_ Bisheng when you ask the Finance Helper, "What is 5% of $1000?":
 
 ```mermaid
 sequenceDiagram
@@ -193,7 +193,7 @@ sequenceDiagram
 4.  **Tool Decision:** The LLM analyzes the request and its tools. It decides that the "Calculator" tool is appropriate and determines the input should be "5% of 1000". It sends this decision back to the agent (often in a specific format like a "function call").
 5.  **Tool Execution:** The `AssistantAgent` receives the LLM's decision. It finds the actual `Calculator` tool object (loaded via `load_tools.py`) and executes it with the specified input.
 6.  **Tool Result:** The Calculator tool runs and returns the result ("50").
-7.  **LLM Call 2 (Final Answer):** The agent sends the *result* of the tool execution back to the LLM, essentially saying, "I ran the calculator with '5% of 1000' and got '50'. Now, please formulate the final answer for the user."
+7.  **LLM Call 2 (Final Answer):** The agent sends the _result_ of the tool execution back to the LLM, essentially saying, "I ran the calculator with '5% of 1000' and got '50'. Now, please formulate the final answer for the user."
 8.  **Answer Generation:** The LLM uses the tool's result and the conversation context to generate the natural language response: "5% of $1000 is $50."
 9.  **Response Sent:** The agent sends this final answer back through the [WebSocket & Chat Management](02_websocket___chat_management_.md) system to your chat interface, often streaming it word by word.
 
@@ -203,12 +203,12 @@ This interaction loop (Agent -> LLM -> Agent -> Tool -> Agent -> LLM -> Agent ->
 
 The GPTS / Assistant Abstraction relies heavily on other components:
 
-*   [Backend API & Services](01_backend_api___services_.md): Used to save/load assistant configurations via API calls.
-*   [WebSocket & Chat Management](02_websocket___chat_management_.md): Receives user messages for the assistant and sends back the generated responses in real-time.
-*   [LLM & Embedding Wrappers](08_llm___embedding_wrappers_.md): Provides the connection to the actual Large Language Models that power the assistant's brain.
-*   [Database Models](09_database_models_.md): Stores the assistant's configuration (prompt, tool links, LLM choice, etc.).
-*   [RAG Pipeline](06_rag_pipeline_.md): If a knowledge base is linked, the assistant uses a RAG tool (provided by this pipeline) to search documents.
-*   [Workflow Engine](04_workflow_engine_.md): While distinct, a complex workflow built visually could potentially be exposed *as a tool* that an assistant can use.
+- [Backend API & Services](01_backend_api___services_.md): Used to save/load assistant configurations via API calls.
+- [WebSocket & Chat Management](02_websocket___chat_management_.md): Receives user messages for the assistant and sends back the generated responses in real-time.
+- [LLM & Embedding Wrappers](08_llm___embedding_wrappers_.md): Provides the connection to the actual Large Language Models that power the assistant's brain.
+- [Database Models](09_database_models_.md): Stores the assistant's configuration (prompt, tool links, LLM choice, etc.).
+- [RAG Pipeline](06_rag_pipeline_.md): If a knowledge base is linked, the assistant uses a RAG tool (provided by this pipeline) to search documents.
+- [Workflow Engine](04_workflow_engine_.md): While distinct, a complex workflow built visually could potentially be exposed _as a tool_ that an assistant can use.
 
 **Conclusion**
 

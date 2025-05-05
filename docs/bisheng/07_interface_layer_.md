@@ -1,4 +1,3 @@
-
 ---
 layout: default
 title: "Interface Layer"
@@ -16,10 +15,10 @@ That's the role of the **Interface Layer**.
 
 Imagine you're using Bisheng's visual workflow editor. You want to add a new component, maybe an OpenAI LLM, to your workflow.
 
-*   How does the editor know that "OpenAI" is an available LLM option?
-*   When you drag the "OpenAI" node onto the canvas, how does the editor know it needs fields for "API Key," "Model Name," and "Temperature"?
-*   How does it know that "Temperature" should be a number slider, while "Model Name" might be a dropdown menu?
-*   Where does the helpful description or documentation link for the "OpenAI" node come from?
+- How does the editor know that "OpenAI" is an available LLM option?
+- When you drag the "OpenAI" node onto the canvas, how does the editor know it needs fields for "API Key," "Model Name," and "Temperature"?
+- How does it know that "Temperature" should be a number slider, while "Model Name" might be a dropdown menu?
+- Where does the helpful description or documentation link for the "OpenAI" node come from?
 
 Trying to hardcode all this information for every possible component would be messy and impossible to maintain, especially as new components are added.
 
@@ -35,9 +34,9 @@ Think of it as a meticulously organized catalog or a universal toolbox where eve
 
 Imagine a massive LEGO catalog.
 
-*   **Discovery:** The catalog lists all the available LEGO bricks and sets (LLMs, Tools, Chains). You can flip through sections like "Technic," "City," "Star Wars" (different component types).
-*   **Configuration:** Each entry shows the specific brick (component). It details its properties: color, number of studs (parameters like `model_name`, `temperature`). It might say "Requires 2x AA batteries" (a required field like `api_key`).
-*   **Representation:** The catalog shows a picture of the brick and maybe a little icon indicating its type. It presents the properties in a clear, understandable way.
+- **Discovery:** The catalog lists all the available LEGO bricks and sets (LLMs, Tools, Chains). You can flip through sections like "Technic," "City," "Star Wars" (different component types).
+- **Configuration:** Each entry shows the specific brick (component). It details its properties: color, number of studs (parameters like `model_name`, `temperature`). It might say "Requires 2x AA batteries" (a required field like `api_key`).
+- **Representation:** The catalog shows a picture of the brick and maybe a little icon indicating its type. It presents the properties in a clear, understandable way.
 
 The Interface Layer is Bisheng's "LEGO catalog," providing all the necessary information for the visual builder (and the rest of the system) to work with the available building blocks.
 
@@ -45,25 +44,25 @@ The Interface Layer is Bisheng's "LEGO catalog," providing all the necessary inf
 
 1.  **Component Registration & Discovery:** The process by which components make themselves known to the system. The Interface Layer aggregates information about components from various sources (standard LangChain libraries, Bisheng's custom components). It allows the system to ask questions like, "List all available LLMs" or "List all available Tools."
 2.  **Component Schema/Signature (`FrontendNode`, `Template`, `TemplateField`):** This is the standardized "catalog entry" for each component. It defines:
-    *   **`name`**: The unique identifier (e.g., "OpenAI").
-    *   **`description`**: A user-friendly explanation of what it does.
-    *   **`base_classes`**: What kind of component it is (e.g., "LLM," "Tool," "Chain"). This helps categorize components.
-    *   **`Template`**: Contains a list of `TemplateField` objects defining the configuration parameters.
-    *   **`TemplateField`**: Describes a single parameter (e.g., "api_key," "temperature"). It specifies:
-        *   `name`: Internal parameter name.
-        *   `display_name`: How the parameter name looks in the UI.
-        *   `field_type`: The data type (string, integer, boolean, LLM, Tool, file, password, code, etc.). This determines the UI element (text box, slider, dropdown, file picker).
-        *   `required`: Whether the user must provide a value.
-        *   `placeholder`: Hint text in the input field.
-        *   `value`: A default value.
-        *   `options`: A list of choices for dropdown menus.
-        *   `fileTypes`: Allowed file extensions for file inputs.
-        *   ...and other UI-related properties (multiline, show/hide, advanced).
+    - **`name`**: The unique identifier (e.g., "OpenAI").
+    - **`description`**: A user-friendly explanation of what it does.
+    - **`base_classes`**: What kind of component it is (e.g., "LLM," "Tool," "Chain"). This helps categorize components.
+    - **`Template`**: Contains a list of `TemplateField` objects defining the configuration parameters.
+    - **`TemplateField`**: Describes a single parameter (e.g., "api_key," "temperature"). It specifies:
+      - `name`: Internal parameter name.
+      - `display_name`: How the parameter name looks in the UI.
+      - `field_type`: The data type (string, integer, boolean, LLM, Tool, file, password, code, etc.). This determines the UI element (text box, slider, dropdown, file picker).
+      - `required`: Whether the user must provide a value.
+      - `placeholder`: Hint text in the input field.
+      - `value`: A default value.
+      - `options`: A list of choices for dropdown menus.
+      - `fileTypes`: Allowed file extensions for file inputs.
+      - ...and other UI-related properties (multiline, show/hide, advanced).
 3.  **Type Creators (`LangChainTypeCreator` subclasses):** Specialized classes responsible for finding and generating the schemas for a specific category of components. For example:
-    *   `LLMCreator`: Finds all LLMs (OpenAI, Anthropic, Azure, custom) and generates their schemas.
-    *   `ToolCreator`: Finds all tools (Search, Calculator, custom Python tools) and generates their schemas.
-    *   `ChainCreator`: Finds all chains.
-    *   ...and so on for prompts, embeddings, vector stores, etc.
+    - `LLMCreator`: Finds all LLMs (OpenAI, Anthropic, Azure, custom) and generates their schemas.
+    - `ToolCreator`: Finds all tools (Search, Calculator, custom Python tools) and generates their schemas.
+    - `ChainCreator`: Finds all chains.
+    - ...and so on for prompts, embeddings, vector stores, etc.
 
 **How It Works: Populating the Node Menu**
 
@@ -73,16 +72,16 @@ Let's trace how the Interface Layer helps populate the menu you see when adding 
 2.  **Backend API Handling:** The API endpoint receives the request.
 3.  **Interface Layer Query:** The endpoint calls a function within the Interface Layer, like `get_all_types_dict()` (from `src/backend/bisheng/interface/types.py`).
 4.  **Gathering Schemas:**
-    *   `get_all_types_dict()` iterates through all registered **Type Creators** (`LLMCreator`, `ToolCreator`, `ChainCreator`, etc.).
-    *   It calls a method like `to_dict()` on each creator.
-    *   `LLMCreator.to_dict()` finds all available LLM classes (e.g., `OpenAI`, `ChatAnthropic`).
-    *   For each LLM class, it calls `get_signature()` or `frontend_node()` to generate its schema (`FrontendNode` containing a `Template` with `TemplateFields` for parameters like `openai_api_key`, `model_name`, `temperature`).
-    *   This process repeats for `ToolCreator`, `ChainCreator`, and all other creators.
+    - `get_all_types_dict()` iterates through all registered **Type Creators** (`LLMCreator`, `ToolCreator`, `ChainCreator`, etc.).
+    - It calls a method like `to_dict()` on each creator.
+    - `LLMCreator.to_dict()` finds all available LLM classes (e.g., `OpenAI`, `ChatAnthropic`).
+    - For each LLM class, it calls `get_signature()` or `frontend_node()` to generate its schema (`FrontendNode` containing a `Template` with `TemplateFields` for parameters like `openai_api_key`, `model_name`, `temperature`).
+    - This process repeats for `ToolCreator`, `ChainCreator`, and all other creators.
 5.  **Aggregation:** The Interface Layer combines all the generated schemas from all creators into a single, large dictionary, categorized by type (LLMs, Tools, Chains, etc.).
 6.  **API Response:** The Backend API sends this dictionary back to the frontend as a JSON response.
 7.  **UI Display:** The frontend parses the JSON. It now knows all available components, their types, names, descriptions, and required parameters. It uses this information to:
-    *   Populate the node selection menu, grouped by type.
-    *   Display the correct configuration panel with the right input fields (text boxes, sliders, dropdowns) when a user selects a specific node (like "OpenAI").
+    - Populate the node selection menu, grouped by type.
+    - Display the correct configuration panel with the right input fields (text boxes, sliders, dropdowns) when a user selects a specific node (like "OpenAI").
 
 **Looking at the Code (Simplified Concepts)**
 
@@ -141,7 +140,7 @@ temperature_field = TemplateField(
 )
 ```
 
-*   `TemplateField` defines a single configuration option. Attributes like `name`, `field_type`, `required`, and `value` define the parameter itself, while others like `display_name`, `show`, `placeholder`, and `options` guide the UI representation.
+- `TemplateField` defines a single configuration option. Attributes like `name`, `field_type`, `required`, and `value` define the parameter itself, while others like `display_name`, `show`, `placeholder`, and `options` guide the UI representation.
 
 **2. `Template` (`template/template/base.py`) - Grouping Settings for a Component**
 
@@ -177,7 +176,7 @@ openai_template = Template(
 )
 ```
 
-*   A `Template` groups multiple `TemplateField`s for one component (like "OpenAI").
+- A `Template` groups multiple `TemplateField`s for one component (like "OpenAI").
 
 **3. `FrontendNode` (`template/frontend_node/base.py`) - The Full UI Definition**
 
@@ -223,7 +222,7 @@ openai_node = FrontendNode(
 # openai_node.to_dict() would produce the JSON structure the frontend expects for OpenAI.
 ```
 
-*   `FrontendNode` is the complete package for the UI, combining the parameters (`Template`), description, type (`base_classes`), and documentation link.
+- `FrontendNode` is the complete package for the UI, combining the parameters (`Template`), description, type (`base_classes`), and documentation link.
 
 **4. `LangChainTypeCreator` (`interface/base.py`) - The Abstract Catalog Builder**
 
@@ -274,7 +273,7 @@ class LangChainTypeCreator(BaseModel, ABC):
         return signature # Should return a FrontendNode instance or None
 ```
 
-*   This abstract class defines the standard methods (`type_to_loader_dict`, `get_signature`, `to_list`, `to_dict`) that each specific creator (like `LLMCreator`) must implement.
+- This abstract class defines the standard methods (`type_to_loader_dict`, `get_signature`, `to_list`, `to_dict`) that each specific creator (like `LLMCreator`) must implement.
 
 **5. Specific Creators (e.g., `LLMCreator` in `interface/llms/base.py`)**
 
@@ -315,7 +314,7 @@ class LLMCreator(LangChainTypeCreator):
 # llm_creator = LLMCreator() # An instance is created for use
 ```
 
-*   `LLMCreator` provides the specific implementation for LLMs, telling the system where to find LLM classes (`type_to_loader_dict`) and how to generate their schemas (`get_signature` using helpers like `build_template_from_class`). Similar creators exist for Tools, Chains, Embeddings, etc.
+- `LLMCreator` provides the specific implementation for LLMs, telling the system where to find LLM classes (`type_to_loader_dict`) and how to generate their schemas (`get_signature` using helpers like `build_template_from_class`). Similar creators exist for Tools, Chains, Embeddings, etc.
 
 **6. Aggregation (`interface/types.py`, `interface/listing.py`)**
 
@@ -370,8 +369,8 @@ class AllTypesDict(LazyLoadDictBase):
 lazy_load_dict = AllTypesDict() # Global instance used by the API
 ```
 
-*   `types.py` defines functions (`build_langchain_types_dict`, `get_all_types_dict`) that collect schemas from all individual creators (`llm_creator`, `tool_creator`, etc.).
-*   `listing.py` often provides a lazy-loaded dictionary (`lazy_load_dict`) that uses these functions, so the schemas are only generated when first requested by the API.
+- `types.py` defines functions (`build_langchain_types_dict`, `get_all_types_dict`) that collect schemas from all individual creators (`llm_creator`, `tool_creator`, etc.).
+- `listing.py` often provides a lazy-loaded dictionary (`lazy_load_dict`) that uses these functions, so the schemas are only generated when first requested by the API.
 
 **Internal Implementation Walkthrough**
 
@@ -418,17 +417,17 @@ sequenceDiagram
 
 The Interface Layer is the glue connecting the frontend to the backend building blocks:
 
-*   It serves information to the [Backend API & Services](01_backend_api___services_.md) endpoint that the **Frontend UI** calls.
-*   It defines the components that are available to be used within the [Workflow Engine](04_workflow_engine_.md) and configured visually.
-*   It describes the configuration parameters needed to instantiate actual components like [LLM & Embedding Wrappers](08_llm___embedding_wrappers_.md), Tools, Chains, etc.
-*   Its behavior (e.g., which components are listed) might be influenced by [Configuration Management](10_configuration_management_.md).
-*   The schemas it generates are used by the [Graph Engine](05_graph_engine_.md)'s loading mechanism (`loading.py`) to know how to instantiate components during workflow execution.
+- It serves information to the [Backend API & Services](01_backend_api___services_.md) endpoint that the **Frontend UI** calls.
+- It defines the components that are available to be used within the [Workflow Engine](04_workflow_engine_.md) and configured visually.
+- It describes the configuration parameters needed to instantiate actual components like [LLM & Embedding Wrappers](08_llm___embedding_wrappers_.md), Tools, Chains, etc.
+- Its behavior (e.g., which components are listed) might be influenced by [Configuration Management](10_configuration_management_.md).
+- The schemas it generates are used by the [Graph Engine](05_graph_engine_.md)'s loading mechanism (`loading.py`) to know how to instantiate components during workflow execution.
 
 **Conclusion**
 
 You've now learned about the Interface Layer – Bisheng's essential "catalog" system. It defines a standardized way to register, describe, and configure all the building blocks (LLMs, Tools, Chains, etc.) available in the platform. Using concepts like `Type Creators`, `FrontendNode`, `Template`, and `TemplateField`, it provides the necessary information for the visual builder UI to display available nodes and their settings correctly. This layer is key to Bisheng's modularity and user-friendliness.
 
-We've seen how the Interface Layer *defines* components like LLMs and Embeddings. But how does Bisheng actually *interact* with these AI models? How does it wrap different model providers (like OpenAI, Anthropic, or local models) into a consistent interface?
+We've seen how the Interface Layer _defines_ components like LLMs and Embeddings. But how does Bisheng actually _interact_ with these AI models? How does it wrap different model providers (like OpenAI, Anthropic, or local models) into a consistent interface?
 
 Let's explore the implementation details in the next chapter: [Chapter 8: LLM & Embedding Wrappers](08_llm___embedding_wrappers_.md).
 
